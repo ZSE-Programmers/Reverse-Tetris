@@ -26,7 +26,7 @@ void MainGame::InitSystems()
 
 	m_levelPosition = m_level.GetLevelPosition();
 
-	m_levelTexture = m_sprite.LoadTexture("Textures/element_green_square.png", m_renderer);
+	m_levelTexture = m_sprite.LoadTexture("Textures/leveltext.png", m_renderer);
 }
 
 void MainGame::GameLoop()
