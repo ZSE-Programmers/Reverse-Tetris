@@ -1,7 +1,7 @@
 #include "Level.h"
 
 
-Level::Level() : TILE_WIDTH(32.0f)
+Level::Level() 
 {
 	std::ifstream file;
 	std::string input;
@@ -27,6 +27,12 @@ Level::Level() : TILE_WIDTH(32.0f)
 			{
 			case '#':
 				m_levelPosition.push_back(glm::vec2(x * TILE_WIDTH, y * TILE_WIDTH));
+				break;
+			case 'z':
+				m_blueSquarePosition.push_back(glm::vec2(x * TILE_WIDTH, y * TILE_WIDTH));
+				break;
+			case 'w':
+				m_miniaturePosition.push_back(glm::vec2(x * TILE_WIDTH, y * TILE_WIDTH));
 				break;
 			}
 		}

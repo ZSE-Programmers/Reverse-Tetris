@@ -33,7 +33,13 @@ private:
 	// Game renderer
 	SDL_Renderer* m_renderer;
 
+	// Textures
 	SDL_Texture* m_levelTexture;
+	SDL_Texture* m_blueSquare;
+	SDL_Texture* m_redSquare;
+	SDL_Texture* m_greenSquare;
+	SDL_Texture* m_purpleSquare;
+	SDL_Texture* m_yellowSquare;
 
 	// Hold game state
 	GameState m_gameState;

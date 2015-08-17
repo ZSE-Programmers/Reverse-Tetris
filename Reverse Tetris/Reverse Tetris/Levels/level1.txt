@@ -10,10 +10,10 @@
 #.......................#
 #.......................#
 #.......................#
-#.......................#
-#.......................#
-#.......................#
-#.......................#
-#.......................#
+#zzzzzzzzzzzzzzzzzzzzzzz#
+#zzzzzzzzzzzzzzzzzzzzzzz#
+#zzzzzzzzzzzzzzzzzzzzzzz#
+#zzzzzzzzzzzzzzzzzzzzzzz#
+#zzzzzzzzzzzzzzzzzzzzzzz#
 #########################
-#.......................#
+#wwwwwwwwwwwwwwwwwwwwwww#
