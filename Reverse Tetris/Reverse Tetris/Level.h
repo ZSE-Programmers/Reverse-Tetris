@@ -10,6 +10,8 @@ public:
 	Level();
 	~Level();
 
+	void LoadBlocks();
+
 	// Getters for widths
 	float GetTileWidth() { return TILE_WIDTH; }
 	float GetSquareWidth() { return SQUARE_WIDTH; }
@@ -20,9 +22,7 @@ public:
 	
 	std::vector <glm::vec2>& GetLevelPosition() { return m_levelPosition; }
 
-	std::vector <glm::vec2>& GetBlueSquares() { return m_blueSquarePosition; }
-
-	std::vector <glm::vec2>& GetMiniature() { return m_miniaturePosition; }
+	std::vector <std::string>& GetLShape() { return m_LShape; }
 
 	//Setters
 
@@ -31,15 +31,16 @@ public:
 private:
 	// Keep level data in string
 	std::vector <std::string> m_levelData;
+	std::vector <std::string> m_figuresShapes;
 
 	// Keep level data position in vec2
 	std::vector <glm::vec2> m_levelPosition;
 
-	// Keep blue blue squares position in vec2
-	std::vector <glm::vec2> m_blueSquarePosition;
+	// L Shape
+	std::vector <std::string> m_LShape;
 
-	// Keep miniatures in vec2
-	std::vector <glm::vec2> m_miniaturePosition;
+	// Reversed L Shape
+
 
 
 	// Blocks widths

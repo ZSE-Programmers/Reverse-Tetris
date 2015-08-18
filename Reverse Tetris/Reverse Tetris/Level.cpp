@@ -28,12 +28,6 @@ Level::Level()
 			case '#':
 				m_levelPosition.push_back(glm::vec2(x * TILE_WIDTH, y * TILE_WIDTH));
 				break;
-			case 'z':
-				m_blueSquarePosition.push_back(glm::vec2(x * TILE_WIDTH, y * TILE_WIDTH));
-				break;
-			case 'w':
-				m_miniaturePosition.push_back(glm::vec2(x * TILE_WIDTH, y * TILE_WIDTH));
-				break;
 			}
 		}
 	}
@@ -41,4 +35,21 @@ Level::Level()
 
 Level::~Level()
 {
+}
+
+void Level::LoadBlocks()
+{
+	std::ifstream file;
+	std::string input;
+
+	file.open("Levels/LShape.txt");
+	if (file.fail())
+	{
+		perror("Levels/LShape.txt");
+	}
+
+	while (std::getline(file, input))
+	{
+		m_LShape.push_back(input);
+	}
 }

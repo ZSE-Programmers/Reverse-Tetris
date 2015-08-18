@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "Level.h"
 #include "Sprite.h"
+#include "Block.h"
 
 enum class GameState{PLAY, EXIT};
 
@@ -23,6 +24,7 @@ private:
 	void Draw();
 	void Update();
 	void ProcessInput();
+	void InitBlocks();
 
 	// Classes
 	Window m_window;
@@ -40,6 +42,13 @@ private:
 	SDL_Texture* m_greenSquare;
 	SDL_Texture* m_purpleSquare;
 	SDL_Texture* m_yellowSquare;
+
+	// Shapes
+	Block LShape;
+
+
+	// Number of types block
+	int m_type;
 
 	// Hold game state
 	GameState m_gameState;

@@ -5,6 +5,7 @@
 MainGame::MainGame()
 {
 	m_gameState = GameState::PLAY;
+	m_type = 0;
 }
 
 
@@ -27,7 +28,7 @@ void MainGame::InitSystems()
 	m_levelPosition = m_level.GetLevelPosition();
 
 	// Initalizing textures
-	m_levelTexture = m_sprite.LoadTexture("Textures/leveltext.png", m_renderer);
+	m_levelTexture = m_sprite.LoadTexture("Textures/bgtext.jpg", m_renderer);
 	m_blueSquare = m_sprite.LoadTexture("Textures/element_blue_square.png", m_renderer);
 	m_redSquare = m_sprite.LoadTexture("Textures/element_red_square.png", m_renderer);
 	m_greenSquare = m_sprite.LoadTexture("Textures/element_green_square.png", m_renderer);
@@ -56,21 +57,7 @@ void MainGame::Draw()
 		SDL_RenderCopy(m_renderer, m_levelTexture, 0, &destRect);
 	}
 
-	// Draw squares
-	std::vector <glm::vec2> blueBricks = m_level.GetBlueSquares();
-	for (auto i = blueBricks.begin(); i != blueBricks.end(); i++)
-	{
-		SDL_Rect destRect = { i->x, i->y, 28, 28 };
-		SDL_RenderCopy(m_renderer, m_blueSquare, 0, &destRect);
-	}
 
-	// Draw miniatures
-	std::vector <glm::vec2> tmp_miniature = m_level.GetMiniature();
-	for (auto i = tmp_miniature.begin(); i != tmp_miniature.end(); i++)
-	{
-		SDL_Rect destRect = { i->x, i->y, 22, 22 };
-		SDL_RenderCopy(m_renderer, m_greenSquare, 0, &destRect);
-	}
 
 	SDL_RenderPresent(m_renderer);
 }
@@ -101,4 +88,9 @@ void MainGame::ProcessInput()
 			break;
 		}
 	}
+}
+
+void MainGame::InitBlocks()
+{
+	LShape.Init(m_level.GetLShape(), m_type++);
 }
