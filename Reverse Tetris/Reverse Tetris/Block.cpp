@@ -1,5 +1,5 @@
 #include "Block.h"
-
+#include <fstream>
 
 
 Block::Block()
@@ -11,25 +11,22 @@ Block::~Block()
 {
 }
 
-void Block::Init(std::vector <std::string> shape, int type)
+void Block::Init(int type, std::string filePath)
 {
-	m_shape = shape;
 	m_type = type;
-}
 
-void Block::Draw(glm::vec2 position)
-{
-	for (int y = 0; y < m_shape.size(); y++)
+	std::ifstream file;
+	std::string input;
+
+	file.open(filePath);
+	if (file.fail())
 	{
-		for (int x = 0; x < m_shape[y].size(); x++)
-		{
-			char tile = m_shape[y][x];
-			switch (tile)
-			{
-			case '1':
-
-				break;
-			}
-		}
+		perror("Levels/LShape.txt");
+	}
+	while (std::getline(file, input))
+	{
+		m_shape.push_back(input);
 	}
 }
+
+

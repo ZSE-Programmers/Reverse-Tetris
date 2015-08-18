@@ -1,5 +1,5 @@
 #include "MainGame.h"
-
+#include <iostream>
 
 
 MainGame::MainGame()
@@ -25,7 +25,7 @@ void MainGame::InitSystems()
 	m_window.Create(800, 600);
 	m_renderer = m_window.GetRenderer();
 
-	m_levelPosition = m_level.GetLevelPosition();
+	m_levelData = m_level.GetLevelData();
 
 	// Initalizing textures
 	m_levelTexture = m_sprite.LoadTexture("Textures/bgtext.jpg", m_renderer);
@@ -51,14 +51,29 @@ void MainGame::Draw()
 	SDL_RenderClear(m_renderer);
 	
 	// Draw level
-	for (auto i = m_levelPosition.begin(); i != m_levelPosition.end(); i++)
+	for (int y = 0; y < m_levelData.size(); y++)
 	{
-		SDL_Rect destRect = { i->x, i->y, 32, 32 };
-		SDL_RenderCopy(m_renderer, m_levelTexture, 0, &destRect);
+		for (int x = 0; x < m_levelData[y].size(); x++)
+		{
+			SDL_Rect destRect = { x * TILE_WIDTH, y * TILE_WIDTH, TILE_WIDTH, TILE_WIDTH };
+			char tile = m_levelData[y][x];
+			switch (tile)
+			{
+			case '#':
+				SDL_RenderCopy(m_renderer, m_levelTexture, NULL, &destRect);
+				break;
+			case '1':
+				SDL_RenderCopy(m_renderer, m_blueSquare, NULL, &destRect);
+				break;
+			case '2':
+				SDL_RenderCopy(m_renderer, m_redSquare, NULL, &destRect);
+				break;
+			case '3':
+				SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
+				break;
+			}
+		}
 	}
-
-
-
 	SDL_RenderPresent(m_renderer);
 }
 
@@ -92,5 +107,5 @@ void MainGame::ProcessInput()
 
 void MainGame::InitBlocks()
 {
-	LShape.Init(m_level.GetLShape(), m_type++);
+	LShape.Init(1, "Levels/LShape.txt");
 }

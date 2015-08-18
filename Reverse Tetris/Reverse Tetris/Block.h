@@ -9,8 +9,7 @@ public:
 	Block();
 	~Block();
 
-	void Init(std::vector <std::string> shape, int type);
-	void Draw(glm::vec2 position);
+	void Init(int type, std::string filePath);
 
 private:
 	std::vector <std::string> m_shape;

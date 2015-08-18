@@ -53,8 +53,10 @@ private:
 	// Hold game state
 	GameState m_gameState;
 
-	// Keep level position in vec2
-	std::vector <glm::vec2> m_levelPosition;
+	// Keep level position 
+	std::vector <std::string> m_levelData;
+
+	const int TILE_WIDTH = 32;
 
 };
 
