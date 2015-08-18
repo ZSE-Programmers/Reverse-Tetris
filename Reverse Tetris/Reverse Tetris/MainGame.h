@@ -25,6 +25,8 @@ private:
 	void Update();
 	void ProcessInput();
 	void InitBlocks();
+	void InitLevel();
+	void InsertBlock(int x, int y);
 
 	// Classes
 	Window m_window;
@@ -45,7 +47,7 @@ private:
 
 	// Shapes
 	Block LShape;
-
+	Block ZShape;
 
 	// Number of types block
 	int m_type;

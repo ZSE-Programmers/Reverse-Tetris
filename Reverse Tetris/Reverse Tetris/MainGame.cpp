@@ -16,6 +16,8 @@ MainGame::~MainGame()
 void MainGame::Run()
 {
 	InitSystems();
+	InitBlocks();
+	InitLevel();
 	GameLoop();
 }
 
@@ -107,5 +109,43 @@ void MainGame::ProcessInput()
 
 void MainGame::InitBlocks()
 {
-	LShape.Init(1, "Levels/LShape.txt");
+	LShape.Init(m_type++, "Levels/LShape.txt");
+	ZShape.Init(m_type++, "Levels/ZShape.txt");
+}
+
+void MainGame::InitLevel()
+{
+	for (int y = m_levelData.size() - 1; y >= 0; y--)
+	{
+		for (int x = m_levelData[y].size() - 1; x >= 0; x--)
+		{
+			char tile = m_levelData[y][x];
+			if (tile == '.')
+			{
+				InsertBlock(x, y);
+			}
+		}
+	}
+}
+
+void MainGame::InsertBlock(int x, int y)
+{
+	// Try to fit the block
+	int counter;
+	std::vector <std::string> shape = ZShape.GetShape();
+	for (int i = 0; i < shape.size(); i++)
+	{
+		for (int j = 0; j < shape[i].size(); j++)
+		{
+			char tile = shape[i][j];
+			if (tile != '.')
+			{
+				if (m_levelData[x + j][y + i] == '.')
+				{
+					counter++;
+				}
+			}
+		}
+	}
+	
 }
