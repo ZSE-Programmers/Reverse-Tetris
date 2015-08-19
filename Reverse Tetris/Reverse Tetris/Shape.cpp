@@ -11,10 +11,8 @@ Shape::~Shape()
 {
 }
 
-void Shape::Init(int type, std::string filePath)
+void Shape::Init(std::string filePath)
 {
-	m_type = type;
-
 	std::ifstream file;
 	std::string input;
 

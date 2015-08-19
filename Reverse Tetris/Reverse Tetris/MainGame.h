@@ -29,6 +29,7 @@ private:
 	void InitLevel();
 	bool InsertBlock(int x, int y);
 	void RemoveBlock();
+	int FindBlock(glm::vec2 position);
 
 	// Classes
 	Window m_window;
@@ -46,6 +47,7 @@ private:
 	SDL_Texture* m_greenSquare;
 	SDL_Texture* m_purpleSquare;
 	SDL_Texture* m_yellowSquare;
+	SDL_Texture* m_pinkSquare;
 
 	// Shapes
 	Shape LShape;

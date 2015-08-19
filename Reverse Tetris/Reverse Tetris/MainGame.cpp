@@ -36,6 +36,7 @@ void MainGame::InitSystems()
 	m_greenSquare = m_sprite.LoadTexture("Textures/element_green_square.png", m_renderer);
 	m_purpleSquare = m_sprite.LoadTexture("Textures/element_purple_cube_glossy.png", m_renderer);
 	m_yellowSquare = m_sprite.LoadTexture("Textures/element_yellow_square.png", m_renderer);
+	m_pinkSquare = m_sprite.LoadTexture("Textures/pink_square.png", m_renderer);
 
 	InitBlocks();
 	InitLevel();
@@ -134,14 +135,14 @@ void MainGame::ProcessInput()
 
 void MainGame::InitBlocks()
 {
-	LShape.Init(m_type++, "Levels/LShape.txt");
-	RLShape.Init(m_type++, "Levels/RLShape.txt");
-	ZShape.Init(m_type++, "Levels/ZShape.txt");
-	RZShape.Init(m_type++, "Levels/RZShape.txt");
-	SQShape.Init(m_type++, "Levels/SQShape.txt");
+	LShape.Init("Levels/LShape.txt");
+	RLShape.Init("Levels/RLShape.txt");
+	ZShape.Init("Levels/ZShape.txt");
+	RZShape.Init("Levels/RZShape.txt");
+	SQShape.Init("Levels/SQShape.txt");
 
-	ZShape2.Init(m_type++, "Levels/ZShape2.txt");
-	RZShape2.Init(m_type++, "Levels/RZShape2.txt");
+	ZShape2.Init("Levels/ZShape2.txt");
+	RZShape2.Init("Levels/RZShape2.txt");
 }
 
 void MainGame::InitLevel()
@@ -216,19 +217,22 @@ bool MainGame::InsertBlock(int x, int y)
 	// If all 4 tiles are empty we can draw our block
 	if (counter == 4)
 	{
+		char tile;
 		Block* tmp_block = new Block;
+		tmp_block->AddType(m_type++);
 		for (int i = 0; i < shape.size(); i++)
 		{
 			for (int j = 0; j < shape[i].size(); j++)
 			{
-				char tile = shape[i][j];
+				tile = shape[i][j];
 				if (tile != '.')
 				{
 					m_levelData[y + i][x + j] = tile;
-					tmp_block->Add(x + j, y + i);
+					tmp_block->AddSquare(x + j, y + i);
 				}
 			}
 		}
+		
 		m_blocks.push_back(tmp_block);
 		return true;
 	}
@@ -242,42 +246,38 @@ void MainGame::RemoveBlock()
 {
 	int counter = 0;
 	glm::vec2 mousePosition = m_inputManager.GetMousePosition();
-
+	// Converting mouse screen coords to levelData coords
 	mousePosition = glm::vec2(floor(mousePosition.x / TILE_WIDTH), floor(mousePosition.y / TILE_WIDTH));
 
 	if (m_levelData[mousePosition.y][mousePosition.x] != '.')
 	{
-		for (int i = 0; i < m_blocks.size(); i++)
+		// Return index to the block we have to remove
+		int index = -1;
+		index = FindBlock(mousePosition);
+
+		if (index != -1)
 		{
-			std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
-			for (int j = 0; j < blockPosition.size(); j++)
+			if (m_blocks[index]->CanRemove(m_levelData))
 			{
-				if (blockPosition[j].y - 1 == '.')
-				{
-					// something
-					counter++;
-				}
-				else
-				{
-					for (int k = 0; k < blockPosition.size(); k++)
-					{
-						if (blockPosition[j].y - 1 == blockPosition[k].y)
-						{
-							// something
-							counter++;
-						}
-					}
-				}
-			}
-			if (counter == 4)
-			{
-				for (int j = 0; j < blockPosition.size(); j++)
-				{
-					m_levelData[blockPosition[j].y][blockPosition[j].x] = '.';
-				}
-				delete m_blocks[i];
-				m_blocks[i] = m_blocks.back();
+				delete m_blocks[index];
+				m_blocks[index] = m_blocks.back();
 				m_blocks.pop_back();
+			}
+		}
+	}
+}
+
+int MainGame::FindBlock(glm::vec2 position)
+{
+	for (int i = 0; i < m_blocks.size(); i++)
+	{
+		std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
+
+		for (int j = 0; j < blockPosition.size(); j++)
+		{
+			if (blockPosition[j] == position)
+			{
+				return i;
 			}
 		}
 	}

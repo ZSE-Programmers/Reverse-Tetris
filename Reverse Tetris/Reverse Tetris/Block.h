@@ -9,11 +9,16 @@ public:
 	Block();
 	~Block();
 
-	void Add(int x, int y);
+	void AddSquare(int x, int y);
+	
+	void AddType(int type);
+
+	bool CanRemove(std::vector <std::string>& levelData);
 
 	std::vector <glm::vec2> GetPosition() { return m_position; }
 
 private:
 	std::vector <glm::vec2> m_position;
+	int m_type;
 };
 
