@@ -9,12 +9,11 @@ public:
 	Block();
 	~Block();
 
-	void Init(int type, std::string filePath);
+	void Add(int x, int y);
 
-	std::vector <std::string>& GetShape() { return m_shape; }
+	std::vector <glm::vec2> GetPosition() { return m_position; }
 
 private:
-	std::vector <std::string> m_shape;
-	int m_type;
+	std::vector <glm::vec2> m_position;
 };
 

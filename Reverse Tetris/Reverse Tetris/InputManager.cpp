@@ -33,3 +33,30 @@ bool InputManager::IsKeyPressed(unsigned int keyID)
 		return false;
 	}
 }
+
+void InputManager::PressButton()
+{
+	m_button = true;
+}
+
+void InputManager::ReleaseButton()
+{
+	m_button = false;
+}
+
+bool InputManager::IsButtonPressed()
+{
+	if (m_button)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void InputManager::SetMousePosition(glm::vec2 mousePosition)
+{
+	m_mousePosition = mousePosition;
+}

@@ -1,6 +1,7 @@
 #include "MainGame.h"
 #include <iostream>
-
+#include <random>
+#include <ctime>
 
 MainGame::MainGame()
 {
@@ -11,13 +12,12 @@ MainGame::MainGame()
 
 MainGame::~MainGame()
 {
+	
 }
 
 void MainGame::Run()
 {
 	InitSystems();
-	InitBlocks();
-	InitLevel();
 	GameLoop();
 }
 
@@ -36,11 +36,14 @@ void MainGame::InitSystems()
 	m_greenSquare = m_sprite.LoadTexture("Textures/element_green_square.png", m_renderer);
 	m_purpleSquare = m_sprite.LoadTexture("Textures/element_purple_cube_glossy.png", m_renderer);
 	m_yellowSquare = m_sprite.LoadTexture("Textures/element_yellow_square.png", m_renderer);
+
+	InitBlocks();
+	InitLevel();
 }
 
 void MainGame::GameLoop()
 {
-	while (true)
+	while (m_gameState != GameState::EXIT)
 	{
 		ProcessInput();
 		Update();
@@ -73,6 +76,18 @@ void MainGame::Draw()
 			case '3':
 				SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
 				break;
+			case '4':
+				SDL_RenderCopy(m_renderer, m_purpleSquare, NULL, &destRect);
+				break;
+			case '5':
+				SDL_RenderCopy(m_renderer, m_yellowSquare, NULL, &destRect);
+				break;
+			case '6':
+				SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
+				break;
+			case '7':
+				SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
+				break;
 			}
 		}
 	}
@@ -81,6 +96,10 @@ void MainGame::Draw()
 
 void MainGame::Update()
 {
+	if (m_inputManager.IsButtonPressed())
+	{
+		RemoveBlock();
+	}
 }
 
 void MainGame::ProcessInput()
@@ -95,7 +114,13 @@ void MainGame::ProcessInput()
 			exit(1);
 			break;
 		case SDL_MOUSEMOTION:
-			//std::cout << tmp_event.motion.x << " " << tmp_event.motion.y << std::endl;
+			m_inputManager.SetMousePosition(glm::vec2(tmp_event.motion.x, tmp_event.motion.y));
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			m_inputManager.PressButton();
+			break;
+		case SDL_MOUSEBUTTONUP:
+			m_inputManager.ReleaseButton();
 			break;
 		case SDL_KEYDOWN:
 			m_inputManager.PressKey(tmp_event.key.keysym.sym);
@@ -110,11 +135,18 @@ void MainGame::ProcessInput()
 void MainGame::InitBlocks()
 {
 	LShape.Init(m_type++, "Levels/LShape.txt");
+	RLShape.Init(m_type++, "Levels/RLShape.txt");
 	ZShape.Init(m_type++, "Levels/ZShape.txt");
+	RZShape.Init(m_type++, "Levels/RZShape.txt");
+	SQShape.Init(m_type++, "Levels/SQShape.txt");
+
+	ZShape2.Init(m_type++, "Levels/ZShape2.txt");
+	RZShape2.Init(m_type++, "Levels/RZShape2.txt");
 }
 
 void MainGame::InitLevel()
 {
+	int counter = 5;
 	for (int y = m_levelData.size() - 1; y >= 0; y--)
 	{
 		for (int x = m_levelData[y].size() - 1; x >= 0; x--)
@@ -122,17 +154,50 @@ void MainGame::InitLevel()
 			char tile = m_levelData[y][x];
 			if (tile == '.')
 			{
-				InsertBlock(x, y);
+				if (InsertBlock(x, y))
+				{
+					counter--;
+					if (counter == 0)
+					{
+						return;
+					}
+				}
 			}
 		}
 	}
 }
 
-void MainGame::InsertBlock(int x, int y)
+bool MainGame::InsertBlock(int x, int y)
 {
-	// Try to fit the block
-	int counter;
-	std::vector <std::string> shape = ZShape.GetShape();
+	// Count pieces of block are fitting
+	int counter = 0;
+
+	// Rolling which block have to be fit
+	static std::mt19937 randomEngine(time(NULL));
+	static std::uniform_int_distribution <int> rollShape(1, 4);
+	int roll = rollShape(randomEngine);
+	
+	// Vector for holding shape
+	std::vector <std::string> shape;
+
+	// Processing which which shape to draw
+	switch (roll)
+	{
+	case 1:
+		shape = RZShape.GetShape();
+		break;
+	case 2:
+		shape = ZShape.GetShape();
+		break;
+	case 3:
+		shape = ZShape2.GetShape();
+		break;
+	case 4:
+		shape = RZShape2.GetShape();
+		break;
+	}
+
+	// Check all tiles from shape 
 	for (int i = 0; i < shape.size(); i++)
 	{
 		for (int j = 0; j < shape[i].size(); j++)
@@ -140,12 +205,80 @@ void MainGame::InsertBlock(int x, int y)
 			char tile = shape[i][j];
 			if (tile != '.')
 			{
-				if (m_levelData[x + j][y + i] == '.')
+				if (m_levelData[y + i][x + j] == '.')
 				{
 					counter++;
 				}
 			}
 		}
 	}
-	
+
+	// If all 4 tiles are empty we can draw our block
+	if (counter == 4)
+	{
+		Block* tmp_block = new Block;
+		for (int i = 0; i < shape.size(); i++)
+		{
+			for (int j = 0; j < shape[i].size(); j++)
+			{
+				char tile = shape[i][j];
+				if (tile != '.')
+				{
+					m_levelData[y + i][x + j] = tile;
+					tmp_block->Add(x + j, y + i);
+				}
+			}
+		}
+		m_blocks.push_back(tmp_block);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void MainGame::RemoveBlock()
+{
+	int counter = 0;
+	glm::vec2 mousePosition = m_inputManager.GetMousePosition();
+
+	mousePosition = glm::vec2(floor(mousePosition.x / TILE_WIDTH), floor(mousePosition.y / TILE_WIDTH));
+
+	if (m_levelData[mousePosition.y][mousePosition.x] != '.')
+	{
+		for (int i = 0; i < m_blocks.size(); i++)
+		{
+			std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
+			for (int j = 0; j < blockPosition.size(); j++)
+			{
+				if (blockPosition[j].y - 1 == '.')
+				{
+					// something
+					counter++;
+				}
+				else
+				{
+					for (int k = 0; k < blockPosition.size(); k++)
+					{
+						if (blockPosition[j].y - 1 == blockPosition[k].y)
+						{
+							// something
+							counter++;
+						}
+					}
+				}
+			}
+			if (counter == 4)
+			{
+				for (int j = 0; j < blockPosition.size(); j++)
+				{
+					m_levelData[blockPosition[j].y][blockPosition[j].x] = '.';
+				}
+				delete m_blocks[i];
+				m_blocks[i] = m_blocks.back();
+				m_blocks.pop_back();
+			}
+		}
+	}
 }
