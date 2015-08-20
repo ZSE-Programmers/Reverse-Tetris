@@ -11,7 +11,7 @@ Shape::~Shape()
 {
 }
 
-void Shape::Init(std::string filePath)
+void Shape::Init(std::string filePath, int type)
 {
 	std::ifstream file;
 	std::string input;
@@ -25,6 +25,7 @@ void Shape::Init(std::string filePath)
 	{
 		m_shape.push_back(input);
 	}
-}
 
+	m_type = type;
+}
 

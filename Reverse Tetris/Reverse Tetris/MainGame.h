@@ -30,6 +30,9 @@ private:
 	bool InsertBlock(int x, int y);
 	void RemoveBlock();
 	int FindBlock(glm::vec2 position);
+	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
+	void UpdateQueue();
+	bool CanPlaceQueue(std::vector <std::string>& shape, int x, int y);
 
 	// Classes
 	Window m_window;
@@ -58,10 +61,15 @@ private:
 	Shape ZShape2;
 	Shape RZShape2;
 
+	// Hold all blocks
 	std::vector <Block*> m_blocks;
 
 	// Number of types block
-	int m_type;
+	std::vector <Shape> m_blockTypes;
+
+	std::vector <Shape> m_stackQueue;
+
+	const int m_maxStackSize = 3;
 
 	// Hold game state
 	GameState m_gameState;

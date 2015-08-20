@@ -6,7 +6,6 @@
 MainGame::MainGame()
 {
 	m_gameState = GameState::PLAY;
-	m_type = 0;
 }
 
 
@@ -101,6 +100,10 @@ void MainGame::Update()
 	{
 		RemoveBlock();
 	}
+	if (m_stackQueue.size() < 3)
+	{
+		UpdateQueue();
+	}
 }
 
 void MainGame::ProcessInput()
@@ -135,14 +138,14 @@ void MainGame::ProcessInput()
 
 void MainGame::InitBlocks()
 {
-	LShape.Init("Levels/LShape.txt");
-	RLShape.Init("Levels/RLShape.txt");
-	ZShape.Init("Levels/ZShape.txt");
-	RZShape.Init("Levels/RZShape.txt");
-	SQShape.Init("Levels/SQShape.txt");
+	LShape.Init("Levels/LShape.txt", 1);
+	RLShape.Init("Levels/RLShape.txt", 2);
+	ZShape.Init("Levels/ZShape.txt", 3);
+	RZShape.Init("Levels/RZShape.txt", 4);
+	SQShape.Init("Levels/SQShape.txt", 5);
 
-	ZShape2.Init("Levels/ZShape2.txt");
-	RZShape2.Init("Levels/RZShape2.txt");
+	ZShape2.Init("Levels/ZShape2.txt", 3);
+	RZShape2.Init("Levels/RZShape2.txt", 4);
 }
 
 void MainGame::InitLevel()
@@ -186,60 +189,42 @@ bool MainGame::InsertBlock(int x, int y)
 	{
 	case 1:
 		shape = RZShape.GetShape();
+		if (CanPlaceBlock(x, y, shape))
+		{
+			m_blockTypes.push_back(RZShape);
+			m_blocks.back()->AddType(3);
+			return true;
+		}
 		break;
 	case 2:
 		shape = ZShape.GetShape();
+		if (CanPlaceBlock(x, y, shape))
+		{
+			m_blockTypes.push_back(ZShape);
+			m_blocks.back()->AddType(4);
+			return true;
+		}
 		break;
 	case 3:
 		shape = ZShape2.GetShape();
+		if (CanPlaceBlock(x, y, shape))
+		{	
+			m_blockTypes.push_back(ZShape2);
+			m_blocks.back()->AddType(4);
+			return true;
+		}
 		break;
 	case 4:
 		shape = RZShape2.GetShape();
+		if (CanPlaceBlock(x, y, shape))
+		{
+			m_blockTypes.push_back(RZShape2);
+			m_blocks.back()->AddType(3);
+			return true;
+		}
 		break;
 	}
-
-	// Check all tiles from shape 
-	for (int i = 0; i < shape.size(); i++)
-	{
-		for (int j = 0; j < shape[i].size(); j++)
-		{
-			char tile = shape[i][j];
-			if (tile != '.')
-			{
-				if (m_levelData[y + i][x + j] == '.')
-				{
-					counter++;
-				}
-			}
-		}
-	}
-
-	// If all 4 tiles are empty we can draw our block
-	if (counter == 4)
-	{
-		char tile;
-		Block* tmp_block = new Block;
-		tmp_block->AddType(m_type++);
-		for (int i = 0; i < shape.size(); i++)
-		{
-			for (int j = 0; j < shape[i].size(); j++)
-			{
-				tile = shape[i][j];
-				if (tile != '.')
-				{
-					m_levelData[y + i][x + j] = tile;
-					tmp_block->AddSquare(x + j, y + i);
-				}
-			}
-		}
-		
-		m_blocks.push_back(tmp_block);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 void MainGame::RemoveBlock()
@@ -249,14 +234,18 @@ void MainGame::RemoveBlock()
 	// Converting mouse screen coords to levelData coords
 	mousePosition = glm::vec2(floor(mousePosition.x / TILE_WIDTH), floor(mousePosition.y / TILE_WIDTH));
 
-	if (m_levelData[mousePosition.y][mousePosition.x] != '.')
+	// Check if this is block or just a part of map
+	if (m_levelData[mousePosition.y][mousePosition.x] != '.' &&
+		m_levelData[mousePosition.y][mousePosition.x] != '-' &&
+		m_levelData[mousePosition.y][mousePosition.x] != '0' &&
+		m_levelData[mousePosition.y][mousePosition.x] != '#')
 	{
-		// Return index to the block we have to remove
+		// Return index to block we have to remove
 		int index = -1;
 		index = FindBlock(mousePosition);
-		std::cout << index << std::endl;
 		if (index != -1)
 		{
+			// Check if we can remove block
 			if (m_blocks[index]->CanRemove(m_levelData))
 			{
 				std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
@@ -287,3 +276,95 @@ int MainGame::FindBlock(glm::vec2 position)
 		}
 	}
 }
+
+bool MainGame::CanPlaceBlock(int x, int y, std::vector<std::string>& shape)
+{
+	int counter = 0;
+	// Check all tiles from shape 
+	for (int i = 0; i < shape.size(); i++)
+	{
+		for (int j = 0; j < shape[i].size(); j++)
+		{
+			char tile = shape[i][j];
+			if (tile != '.')
+			{
+				if (m_levelData[y + i][x + j] == '.')
+				{
+					counter++;
+				}
+			}
+		}
+	}
+
+	// If all 4 tiles are empty we can draw our block
+	if (counter == 4)
+	{
+		char tile;
+		Block* tmp_block = new Block;
+		for (int i = 0; i < shape.size(); i++)
+		{
+			for (int j = 0; j < shape[i].size(); j++)
+			{
+				tile = shape[i][j];
+				if (tile != '.')
+				{
+					m_levelData[y + i][x + j] = tile;
+					tmp_block->AddSquare(x + j, y + i);
+				}
+			}
+		}
+		m_blocks.push_back(tmp_block);
+		return true;
+	}
+	return false;
+}
+
+void MainGame::UpdateQueue()
+{
+	int counter = 0;
+	if (!m_blockTypes.empty())
+	{
+		for (int i = 0; i < m_maxStackSize; i++)
+		{
+			std::mt19937 randomEngine(time(NULL));
+			std::uniform_int_distribution <int> roll(0, m_blockTypes.size() - 1);
+
+			m_stackQueue.push_back(m_blockTypes[roll(randomEngine)]);
+		}
+
+		for (int i = 0; i < m_levelData.size(); i++)
+		{
+			for (int j = 0; j < m_levelData[i].size(); j++)
+			{
+				if (m_levelData[i][j] == '-')
+				{
+					std::vector <std::string> shape = m_stackQueue.back().GetShape();
+					if (CanPlaceQueue(shape, j, i))
+					{
+						counter++;
+						if (counter >= m_maxStackSize)
+						{
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool MainGame::CanPlaceQueue(std::vector<std::string>& shape, int x, int y)
+{
+	for (int i = 0; i < shape.size(); i++)
+	{
+		for (int j = 0; j < shape[i].size(); j++)
+		{
+			if (shape[i][j] != '.')
+			{
+				m_levelData[y + i][x + j] = shape[i][j];
+			}
+		}
+	}
+	return true;
+}
+

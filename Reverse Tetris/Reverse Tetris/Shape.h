@@ -9,11 +9,12 @@ public:
 	Shape();
 	~Shape();
 
-	void Init(std::string filePath);
+	void Init(std::string filePath, int type);
 
 	std::vector <std::string>& GetShape() { return m_shape; }
 
 private:
 	std::vector <std::string> m_shape;
+	int m_type;
 };
 
