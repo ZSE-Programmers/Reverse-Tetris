@@ -39,7 +39,7 @@ bool Block::CanRemove(std::vector<std::string>& levelData)
 			// Checking if there is no same block square above it
 			for (int j = 0; j < m_position.size(); j++)
 			{
-				if (m_position[i].y - 1 == m_position[j].y)
+				if (m_position[i].y - 1 == m_position[j].y && m_position[i].x == m_position[j].x)
 				{
 					counter++;
 				}

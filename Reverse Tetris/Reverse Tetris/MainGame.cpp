@@ -147,7 +147,7 @@ void MainGame::InitBlocks()
 
 void MainGame::InitLevel()
 {
-	int counter = 5;
+	int counter = 10;
 	for (int y = m_levelData.size() - 1; y >= 0; y--)
 	{
 		for (int x = m_levelData[y].size() - 1; x >= 0; x--)
@@ -254,14 +254,19 @@ void MainGame::RemoveBlock()
 		// Return index to the block we have to remove
 		int index = -1;
 		index = FindBlock(mousePosition);
-
+		std::cout << index << std::endl;
 		if (index != -1)
 		{
 			if (m_blocks[index]->CanRemove(m_levelData))
 			{
+				std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
 				delete m_blocks[index];
 				m_blocks[index] = m_blocks.back();
 				m_blocks.pop_back();
+				for (int i = 0; i < squarePosition.size(); i++)
+				{
+					m_levelData[squarePosition[i].y][squarePosition[i].x] = '.';
+				}
 			}
 		}
 	}
