@@ -2,7 +2,7 @@
 #include <fstream>
 
 
-Block::Block() : m_type(-1)
+Block::Block() 
 {
 	
 }
@@ -17,9 +17,9 @@ void Block::AddSquare(int x, int y)
 	m_position.push_back(glm::vec2(x, y));
 }
 
-void Block::AddType(int type)
+void Block::AddShape(Shape shape)
 {
-	m_type = type;
+	m_shape = shape;
 }
 
 bool Block::CanRemove(std::vector<std::string>& levelData)

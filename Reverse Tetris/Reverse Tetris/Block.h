@@ -1,4 +1,5 @@
 #pragma once
+#include "Shape.h"
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
@@ -11,14 +12,16 @@ public:
 
 	void AddSquare(int x, int y);
 	
-	void AddType(int type);
+	void AddShape(Shape shape);
 
 	bool CanRemove(std::vector <std::string>& levelData);
 
 	std::vector <glm::vec2> GetPosition() { return m_position; }
 
+	std::vector <std::string> GetShape() { return m_shape.GetShape(); }
+
 private:
 	std::vector <glm::vec2> m_position;
-	int m_type;
+	Shape m_shape;
 };
 

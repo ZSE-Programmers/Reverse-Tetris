@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL/SDL.h>
+#include <list>
 
 #include "Window.h"
 #include "InputManager.h"
@@ -31,7 +32,7 @@ private:
 	void RemoveBlock();
 	int FindBlock(glm::vec2 position);
 	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
-	void UpdateQueue();
+	bool UpdateQueue();
 	bool CanPlaceQueue(std::vector <std::string>& shape, int x, int y);
 
 	// Classes
@@ -67,7 +68,7 @@ private:
 	// Number of types block
 	std::vector <Shape> m_blockTypes;
 
-	std::vector <Shape> m_stackQueue;
+	std::list <Shape> m_stackQueue;
 
 	const int m_maxStackSize = 3;
 

@@ -29,7 +29,7 @@ void MainGame::InitSystems()
 	m_levelData = m_level.GetLevelData();
 
 	// Initalizing textures
-	m_levelTexture = m_sprite.LoadTexture("Textures/bgtext.jpg", m_renderer);
+	m_levelTexture = m_sprite.LoadTexture("Textures/mountain.png", m_renderer);
 	m_blueSquare = m_sprite.LoadTexture("Textures/element_blue_square.png", m_renderer);
 	m_redSquare = m_sprite.LoadTexture("Textures/element_red_square.png", m_renderer);
 	m_greenSquare = m_sprite.LoadTexture("Textures/element_green_square.png", m_renderer);
@@ -192,7 +192,7 @@ bool MainGame::InsertBlock(int x, int y)
 		if (CanPlaceBlock(x, y, shape))
 		{
 			m_blockTypes.push_back(RZShape);
-			m_blocks.back()->AddType(3);
+			m_blocks.back()->AddShape(RZShape);
 			return true;
 		}
 		break;
@@ -201,7 +201,7 @@ bool MainGame::InsertBlock(int x, int y)
 		if (CanPlaceBlock(x, y, shape))
 		{
 			m_blockTypes.push_back(ZShape);
-			m_blocks.back()->AddType(4);
+			m_blocks.back()->AddShape(ZShape);
 			return true;
 		}
 		break;
@@ -210,7 +210,7 @@ bool MainGame::InsertBlock(int x, int y)
 		if (CanPlaceBlock(x, y, shape))
 		{	
 			m_blockTypes.push_back(ZShape2);
-			m_blocks.back()->AddType(4);
+			m_blocks.back()->AddShape(ZShape);
 			return true;
 		}
 		break;
@@ -219,7 +219,7 @@ bool MainGame::InsertBlock(int x, int y)
 		if (CanPlaceBlock(x, y, shape))
 		{
 			m_blockTypes.push_back(RZShape2);
-			m_blocks.back()->AddType(3);
+			m_blocks.back()->AddShape(RZShape);
 			return true;
 		}
 		break;
@@ -245,16 +245,25 @@ void MainGame::RemoveBlock()
 		index = FindBlock(mousePosition);
 		if (index != -1)
 		{
-			// Check if we can remove block
-			if (m_blocks[index]->CanRemove(m_levelData))
+			// If block we click is same as first in queue
+			if (m_blocks[index]->GetShape() == m_stackQueue.front().GetShape())
 			{
-				std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
-				delete m_blocks[index];
-				m_blocks[index] = m_blocks.back();
-				m_blocks.pop_back();
-				for (int i = 0; i < squarePosition.size(); i++)
+				// Check if we can remove block
+				if (m_blocks[index]->CanRemove(m_levelData))
 				{
-					m_levelData[squarePosition[i].y][squarePosition[i].x] = '.';
+					// Pop out first element from queue
+					m_stackQueue.pop_front();
+					// Position of squares that we can to replace by '.'
+					std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
+					// Deleting block
+					delete m_blocks[index];
+					m_blocks[index] = m_blocks.back();
+					m_blocks.pop_back();
+					// Replacing sqaures by '.'
+					for (int i = 0; i < squarePosition.size(); i++)
+					{
+						m_levelData[squarePosition[i].y][squarePosition[i].x] = '.';
+					}
 				}
 			}
 		}
@@ -319,52 +328,85 @@ bool MainGame::CanPlaceBlock(int x, int y, std::vector<std::string>& shape)
 	return false;
 }
 
-void MainGame::UpdateQueue()
+bool MainGame::UpdateQueue()
 {
 	int counter = 0;
 	if (!m_blockTypes.empty())
 	{
+		// Pushing new blocks to the queue
 		for (int i = 0; i < m_maxStackSize; i++)
 		{
 			std::mt19937 randomEngine(time(NULL));
 			std::uniform_int_distribution <int> roll(0, m_blockTypes.size() - 1);
 
-			m_stackQueue.push_back(m_blockTypes[roll(randomEngine)]);
+			// If there is less then 3 blocks in queue
+			if (m_stackQueue.size() < 3)
+			{
+				m_stackQueue.push_back(m_blockTypes[roll(randomEngine)]);
+			}
 		}
 
+		// Fitting blocks into queue window 
 		for (int i = 0; i < m_levelData.size(); i++)
 		{
 			for (int j = 0; j < m_levelData[i].size(); j++)
 			{
-				if (m_levelData[i][j] == '-')
+				if (m_levelData[i][j] == '-') 
 				{
-					std::vector <std::string> shape = m_stackQueue.back().GetShape();
-					if (CanPlaceQueue(shape, j, i))
+					for (auto it = m_stackQueue.begin(); it != m_stackQueue.end(); it++)
 					{
-						counter++;
-						if (counter >= m_maxStackSize)
+						std::vector <std::string> shape = it->GetShape();
+						if (CanPlaceQueue(shape, j, i))
 						{
-							return;
+							i += 4;
+							j = 0;
+							counter++;
+							if (counter >= m_maxStackSize)
+							{
+								return false;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+	return true;
 }
 
 bool MainGame::CanPlaceQueue(std::vector<std::string>& shape, int x, int y)
 {
+	int counter = 0;
 	for (int i = 0; i < shape.size(); i++)
 	{
 		for (int j = 0; j < shape[i].size(); j++)
 		{
 			if (shape[i][j] != '.')
 			{
-				m_levelData[y + i][x + j] = shape[i][j];
+				if (m_levelData[y + i][x + j] == '-')
+				{
+					counter++;
+				}
 			}
 		}
 	}
-	return true;
+	if (counter == 4)
+	{
+		for (int i = 0; i < shape.size(); i++)
+		{
+			for (int j = 0; j < shape[i].size(); j++)
+			{
+				if (shape[i][j] != '.')
+				{
+					m_levelData[y + i][x + j] = shape[i][j];
+				}
+			}
+		}
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
