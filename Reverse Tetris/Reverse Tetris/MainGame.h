@@ -32,8 +32,11 @@ private:
 	void RemoveBlock();
 	int FindBlock(glm::vec2 position);
 	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
+
+	void InitQueue();
 	bool UpdateQueue();
-	bool CanPlaceQueue(std::vector <std::string>& shape, int x, int y);
+	bool DrawQueue();
+	void RemoveQueue();
 
 	// Classes
 	Window m_window;
@@ -62,6 +65,8 @@ private:
 	Shape ZShape2;
 	Shape RZShape2;
 
+	Shape m_emptyShape;
+
 	// Hold all blocks
 	std::vector <Block*> m_blocks;
 
@@ -70,8 +75,8 @@ private:
 
 	std::list <Shape> m_stackQueue;
 
-	const int m_maxStackSize = 3;
-
+	const int QUEUE_SIZE = 3;
+	const glm::vec2 QUEUE_POSITIONS[3] = { {18, 2}, {18, 6}, {18, 10} };
 	// Hold game state
 	GameState m_gameState;
 

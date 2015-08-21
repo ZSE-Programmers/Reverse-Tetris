@@ -29,3 +29,8 @@ void Shape::Init(std::string filePath, int type)
 	m_type = type;
 }
 
+void Shape::SetPosition(glm::vec2 position)
+{
+	m_position = position;
+}
+
