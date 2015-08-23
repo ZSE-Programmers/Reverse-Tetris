@@ -6,8 +6,8 @@
 MainGame::MainGame()
 {
 	m_gameState = GameState::PLAY;
+	LANES = 0;
 }
-
 
 MainGame::~MainGame()
 {
@@ -37,18 +37,53 @@ void MainGame::InitSystems()
 	m_yellowSquare = m_sprite.LoadTexture("Textures/element_yellow_square.png", m_renderer);
 	m_pinkSquare = m_sprite.LoadTexture("Textures/pink_square.png", m_renderer);
 
+	// Adding shapes for each block
 	InitBlocks();
+
+	// Loading first blocks on map
 	InitLevel();
+
+	// Initalizing queue
 	InitQueue();
+
+	// Initalizing new blocks
+	InitNewBlocks();
 }
 
 void MainGame::GameLoop()
 {
+	int counter = 0;
 	while (m_gameState != GameState::EXIT)
 	{
+		m_fps.Start();
+
 		ProcessInput();
 		Update();
 		Draw();
+
+		counter++;
+		if (counter > 180)
+		{
+			for (int y = 0; y < m_levelData.size(); y++)
+			{
+				for (int x = 0; x < m_levelData[y].size(); x++)
+				{
+					char tile = m_levelData[y][x];
+					if (tile != '#' && tile != 'x' && tile != '-' && y != 1 && y != 16 && x < 14)
+					{
+						m_levelData[y][x] = m_levelData[y + 1][x];
+					}
+					else if (y == 16)
+					{
+						m_levelData[y] = m_newBlocksData[LANES];
+					}
+				}
+			}
+			LANES++;
+			counter = 0;
+		}
+
+		m_fps.End();
 	}
 }
 
@@ -172,29 +207,6 @@ void MainGame::InitLevel()
 			}
 		}
 	}
-}
-
-void MainGame::InitQueue()
-{
-	if (!m_blockTypes.empty())
-	{
-		// Pushing new blocks to the queue
-		for (int i = 0; i < QUEUE_SIZE; i++)
-		{
-			// Random generator
-			std::mt19937 randomEngine(time(NULL));
-			std::uniform_int_distribution <int> roll(0, m_blockTypes.size() - 1);
-			int index = roll(randomEngine);
-
-			// Adding block to queue and removing from blocks 
-			m_stackQueue.push_back(m_blockTypes[index]);
-			m_blockTypes[index] = m_blockTypes.back();
-			m_blockTypes.pop_back();
-		}
-	}
-
-	// Drawing queue
-	DrawQueue();
 }
 
 bool MainGame::InsertBlock(int x, int y)
@@ -351,6 +363,138 @@ bool MainGame::CanPlaceBlock(int x, int y, std::vector<std::string>& shape)
 		return true;
 	}
 	return false;
+}
+
+void MainGame::InitNewBlocks()
+{
+	// Initalizing new blocks data
+	std::ifstream file;
+	std::string input;
+	file.open("Levels/newlanes.txt");
+	if (file.fail())
+	{
+		perror("Levels/newlanes.txt");
+	}
+	while (std::getline(file, input))
+	{
+		m_newBlocksData.push_back(input);
+	}
+
+	// Rolling new blocks
+	for (int y = 0; y < m_newBlocksData.size(); y++)
+	{
+		for (int x = 0; x < m_newBlocksData[y].size(); x++)
+		{
+			char tile = m_newBlocksData[y][x];
+			if (tile == '.')
+			{
+				RollNewBlock(x, y);
+			}
+		}
+	}
+
+	for (int i = 0; i < m_newBlocksData.size(); i++)
+	{
+		std::cout << m_newBlocksData[i] << std::endl;
+	}
+}
+
+void MainGame::RollNewBlock(int x, int y)
+{
+	static std::mt19937 randomEngine(time(NULL));
+	std::uniform_int_distribution <int> roll(1, 5);
+
+	int newBlock = roll(randomEngine);
+	switch (newBlock)
+	{
+	case 1:
+		InsertNewBlock(x, y, ZShape.GetShape());
+		break;
+	case 2:
+		InsertNewBlock(x, y, RZShape.GetShape());
+		break;
+	case 3:
+		InsertNewBlock(x, y, LShape.GetShape());
+		break;
+	case 4:
+		InsertNewBlock(x, y, RLShape.GetShape());
+		break;
+	case 5:
+		InsertNewBlock(x, y, SQShape.GetShape());
+		break;
+	case 6:
+		break;
+	case 7:
+		break;
+	}
+}
+
+bool MainGame::InsertNewBlock(int x, int y, std::vector<std::string>& shape)
+{
+	int counter = 0;
+	// Check all tiles from shape 
+	for (int i = 0; i < shape.size(); i++)
+	{
+		for (int j = 0; j < shape[i].size(); j++)
+		{
+			char tile = shape[i][j];
+			if (tile != '.')
+			{
+				if (m_newBlocksData[y + i][x + j] == '.')
+				{
+					counter++;
+				}
+			}
+		}
+	}
+
+	// If all 4 tiles are empty we can draw our block
+	if (counter == 4)
+	{
+		char tile;
+		Block* tmp_block = new Block;
+		for (int i = 0; i < shape.size(); i++)
+		{
+			for (int j = 0; j < shape[i].size(); j++)
+			{
+				tile = shape[i][j];
+				if (tile != '.')
+				{
+					m_newBlocksData[y + i][x + j] = tile;
+					tmp_block->AddSquare(x + j, y + i);
+				}
+			}
+		}
+		m_newBlocks.push_back(tmp_block);
+		return true;
+	}
+	return false;
+}
+
+// Queue functions
+// Initalizing, updating, drawing and removing blocks in queue
+
+void MainGame::InitQueue()
+{
+	if (!m_blockTypes.empty())
+	{
+		// Pushing new blocks to the queue
+		for (int i = 0; i < QUEUE_SIZE; i++)
+		{
+			// Random generator
+			std::mt19937 randomEngine(time(NULL));
+			std::uniform_int_distribution <int> roll(0, m_blockTypes.size() - 1);
+			int index = roll(randomEngine);
+
+			// Adding block to queue and removing from blocks 
+			m_stackQueue.push_back(m_blockTypes[index]);
+			m_blockTypes[index] = m_blockTypes.back();
+			m_blockTypes.pop_back();
+		}
+	}
+
+	// Drawing queue
+	DrawQueue();
 }
 
 bool MainGame::UpdateQueue()

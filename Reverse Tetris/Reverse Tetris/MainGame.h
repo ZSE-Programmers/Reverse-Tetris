@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL/SDL.h>
+#include <SDL/SDL_timer.h>
 #include <list>
 
 #include "Window.h"
@@ -8,6 +9,7 @@
 #include "Sprite.h"
 #include "Block.h"
 #include "Shape.h"
+#include "FPSLimiter.h"
 
 enum class GameState{PLAY, EXIT};
 
@@ -28,11 +30,18 @@ private:
 	void ProcessInput();
 	void InitBlocks();
 	void InitLevel();
+
 	bool InsertBlock(int x, int y);
 	void RemoveBlock();
 	int FindBlock(glm::vec2 position);
 	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
 
+	// New blocks func
+	void InitNewBlocks();
+	void RollNewBlock(int x, int y);
+	bool InsertNewBlock(int x, int y, std::vector <std::string>& shape);
+
+	// Queue functions
 	void InitQueue();
 	bool UpdateQueue();
 	bool DrawQueue();
@@ -43,6 +52,7 @@ private:
 	InputManager m_inputManager;
 	Level m_level;
 	Sprite m_sprite;
+	FPSLimiter m_fps;
 
 	// Game renderer
 	SDL_Renderer* m_renderer;
@@ -70,13 +80,17 @@ private:
 	// Hold all blocks
 	std::vector <Block*> m_blocks;
 
+	std::vector <Block*> m_newBlocks;
+	std::vector <std::string> m_newBlocksData;
+
 	// Number of types block
 	std::vector <Shape> m_blockTypes;
 
+	// List of blocks in queue
 	std::list <Shape> m_stackQueue;
 
-	const int QUEUE_SIZE = 3;
-	const glm::vec2 QUEUE_POSITIONS[3] = { {18, 2}, {18, 6}, {18, 10} };
+	static const int QUEUE_SIZE = 3;
+	const glm::vec2 QUEUE_POSITIONS[QUEUE_SIZE] = { {18, 2}, {18, 6}, {18, 10} };
 	// Hold game state
 	GameState m_gameState;
 
@@ -84,5 +98,9 @@ private:
 	std::vector <std::string> m_levelData;
 
 	const int TILE_WIDTH = 32;
+	const int FRAMES_PER_SECOND = 60;
+	const int SCREEN_TICKS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
+
+	int LANES;
 };
 
