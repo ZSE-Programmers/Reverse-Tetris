@@ -35,11 +35,14 @@ private:
 	void RemoveBlock();
 	int FindBlock(glm::vec2 position);
 	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
+	void MoveUp();
 
 	// New blocks func
 	void InitNewBlocks();
 	void RollNewBlock(int x, int y);
 	bool InsertNewBlock(int x, int y, std::vector <std::string>& shape);
+	void AddNewBlocks(int lanes);
+	int FindNewBlock(glm::vec2 position);
 
 	// Queue functions
 	void InitQueue();

@@ -20,6 +20,10 @@ public:
 
 	std::vector <std::string> GetShape() { return m_shape.GetShape(); }
 
+	Shape GetRealShape() { return m_shape; }
+
+	void SetPosition(std::vector <glm::vec2> position);
+
 private:
 	std::vector <glm::vec2> m_position;
 	Shape m_shape;

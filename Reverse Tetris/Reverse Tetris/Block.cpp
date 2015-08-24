@@ -64,6 +64,11 @@ bool Block::CanRemove(std::vector<std::string>& levelData)
 	}
 }
 
+void Block::SetPosition(std::vector<glm::vec2> position)
+{
+	m_position = position;
+}
+
 
 
 

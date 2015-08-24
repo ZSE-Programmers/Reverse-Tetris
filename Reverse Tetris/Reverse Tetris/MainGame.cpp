@@ -58,8 +58,7 @@ void MainGame::GameLoop()
 		m_fps.Start();
 
 		ProcessInput();
-		Update();
-		Draw();
+
 
 		counter++;
 		if (counter > 180)
@@ -79,9 +78,14 @@ void MainGame::GameLoop()
 					}
 				}
 			}
-			LANES++;
 			counter = 0;
+			MoveUp();
+			AddNewBlocks(LANES);
+			LANES++;
 		}
+
+		Update();
+		Draw();
 
 		m_fps.End();
 	}
@@ -138,7 +142,6 @@ void MainGame::Update()
 	}
 	if (m_blocks.empty())
 	{
-		std::cout << "GZ! You won!\n";
 		m_gameState = GameState::EXIT;
 	}
 }
@@ -276,8 +279,7 @@ void MainGame::RemoveBlock()
 		mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 17)
 	{
 		// Return index to block we have to remove
-		int index = -1;
-		index = FindBlock(mousePosition);
+		int index = FindBlock(mousePosition);
 		if (index != -1)
 		{
 			if (m_blocks[index]->GetShape() == m_stackQueue.front().GetShape())
@@ -321,6 +323,7 @@ int MainGame::FindBlock(glm::vec2 position)
 			}
 		}
 	}
+	return -1;
 }
 
 bool MainGame::CanPlaceBlock(int x, int y, std::vector<std::string>& shape)
@@ -363,6 +366,19 @@ bool MainGame::CanPlaceBlock(int x, int y, std::vector<std::string>& shape)
 		return true;
 	}
 	return false;
+}
+
+void MainGame::MoveUp()
+{
+	for (int i = 0; i < m_blocks.size(); i++)
+	{
+		std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
+		for (int j = 0; j < blockPosition.size(); j++)
+		{
+			blockPosition[j].y -= 1;
+		}
+		m_blocks[i]->SetPosition(blockPosition);
+	}
 }
 
 void MainGame::InitNewBlocks()
@@ -408,19 +424,34 @@ void MainGame::RollNewBlock(int x, int y)
 	switch (newBlock)
 	{
 	case 1:
-		InsertNewBlock(x, y, ZShape.GetShape());
+		if (InsertNewBlock(x, y, ZShape.GetShape()))
+		{
+			m_newBlocks.back()->AddShape(ZShape);
+		}
 		break;
 	case 2:
-		InsertNewBlock(x, y, RZShape.GetShape());
+		if (InsertNewBlock(x, y, RZShape.GetShape()))
+		{
+			m_newBlocks.back()->AddShape(RZShape);
+		}
 		break;
 	case 3:
-		InsertNewBlock(x, y, LShape.GetShape());
+		if (InsertNewBlock(x, y, LShape.GetShape()))
+		{
+			m_newBlocks.back()->AddShape(LShape);
+		}
 		break;
 	case 4:
-		InsertNewBlock(x, y, RLShape.GetShape());
+		if (InsertNewBlock(x, y, RLShape.GetShape()))
+		{
+			m_newBlocks.back()->AddShape(RLShape);
+		}
 		break;
 	case 5:
-		InsertNewBlock(x, y, SQShape.GetShape());
+		if (InsertNewBlock(x, y, SQShape.GetShape()))
+		{
+			m_newBlocks.back()->AddShape(SQShape);
+		}
 		break;
 	case 6:
 		break;
@@ -465,10 +496,56 @@ bool MainGame::InsertNewBlock(int x, int y, std::vector<std::string>& shape)
 				}
 			}
 		}
+		
 		m_newBlocks.push_back(tmp_block);
 		return true;
 	}
 	return false;
+}
+
+void MainGame::AddNewBlocks(int lanes)
+{
+	for (int i = 0; i < m_newBlocksData[lanes].size(); i++)
+	{
+		char tile = m_newBlocksData[lanes][i];
+		if (tile != '#' && tile != '.')
+		{
+			int index = FindNewBlock({ i, lanes });
+			if (index != -1)
+			{
+				Block* tmp_block = new Block;
+				std::vector <glm::vec2> blockPosition = m_newBlocks[index]->GetPosition();
+				for (int i = 0; i < blockPosition.size(); i++)
+				{
+					tmp_block->AddSquare(blockPosition[i].x, blockPosition[i].y + 17 - lanes);
+				}
+				m_blockTypes.push_back(m_newBlocks[index]->GetRealShape());
+				tmp_block->AddShape(m_newBlocks[index]->GetRealShape());
+				m_blocks.push_back(tmp_block);
+				
+				delete m_newBlocks[index];
+				m_newBlocks[index] = m_newBlocks.back();
+				m_newBlocks.pop_back();
+			}
+		}
+	}
+
+}
+
+int MainGame::FindNewBlock(glm::vec2 position)
+{
+	for (int i = 0; i < m_newBlocks.size(); i++)
+	{
+		std::vector <glm::vec2> blocksPosition = m_newBlocks[i]->GetPosition();
+		for (int j = 0; j < blocksPosition.size(); j++)
+		{
+			if (blocksPosition[j].x == position.x && blocksPosition[j].y == position.y)
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 
 // Queue functions
