@@ -7,7 +7,7 @@ MainGame::MainGame()
 {
 	TTF_Init();
 	m_gameState = GameState::PLAY;
-	LANES = 0;
+	m_newLines = 0;
 	m_speed = 4;
 
 	m_font = nullptr;
@@ -55,7 +55,7 @@ void MainGame::InitSystems()
 	m_pinkSquare = m_sprite.LoadTexture("Textures/pink_square.png", m_renderer);
 
 	// Adding shapes for each block
-	InitBlocks();
+	InitShapes();
 
 	// Loading first blocks on map
 	InitLevel();
@@ -69,22 +69,21 @@ void MainGame::InitSystems()
 
 void MainGame::GameLoop()
 {
-	int counter = 0;
 	while (m_gameState != GameState::EXIT)
 	{
 		m_fps.Start();
 
 		ProcessInput();
 
-		// If new blocks file is at the end we roll new blocks
-		if (LANES == m_newBlocksData.size() - 2)
+		// If new blocks txt file is at the end we roll new blocks
+		if (m_newLines == m_newBlocksData.size() - 2)
 		{
 			m_newBlocksData.clear();
 			InitNewBlocks();
-			LANES = 0;
+			m_newLines = 0;
 		}
 
-		counter++;
+		// Moving all blocks one tile up
 		if (SDL_GetTicks() / 1000.0f > m_speed)
 		{
 			m_speed += 4 * 0.95;
@@ -99,14 +98,13 @@ void MainGame::GameLoop()
 					}
 					else if (y == 16)
 					{
-						m_levelData[y] = m_newBlocksData[LANES];
+						m_levelData[y] = m_newBlocksData[m_newLines];
 					}
 				}
 			}
-			counter = 0;
 			MoveUp();
-			AddNewBlocks(LANES);
-			LANES++;
+			AddNewBlocks(m_newLines);
+			m_newLines++;
 		}
 
 		Update();
@@ -216,7 +214,7 @@ void MainGame::ProcessInput()
 	}
 }
 
-void MainGame::InitBlocks()
+void MainGame::InitShapes()
 {
 	LShape.Init("Levels/LShape.txt", 1);
 	RLShape.Init("Levels/RLShape.txt", 2);
@@ -226,84 +224,39 @@ void MainGame::InitBlocks()
 
 	ZShape2.Init("Levels/ZShape2.txt", 3);
 	RZShape2.Init("Levels/RZShape2.txt", 4);
+
 	m_emptyShape.Init("Levels/EmptyShape.txt", -1);
 }
 
 void MainGame::InitLevel()
 {
+	// How many blocks we want to spawn at the begining
 	int counter = 10;
 	for (int y = m_levelData.size() - 1; y >= 0; y--)
 	{
 		for (int x = m_levelData[y].size() - 1; x >= 0; x--)
 		{
-			char tile = m_levelData[y][x];
-			if (tile == '.')
+			if (InitBlocks({ x, y }))
 			{
-				if (InsertBlock(x, y))
+				counter--;
+				if (counter <= 0)
 				{
-					counter--;
-					if (counter == 0)
-					{
-						return;
-					}
+					// This means we are done
+					return;
 				}
 			}
 		}
 	}
 }
 
-bool MainGame::InsertBlock(int x, int y)
+bool MainGame::InitBlocks(glm::vec2 position)
 {
-	// Count pieces of block are fitting
-	int counter = 0;
-
-	// Rolling which block have to be fit
-	static std::mt19937 randomEngine(time(NULL));
-	static std::uniform_int_distribution <int> rollShape(1, 4);
-	int roll = rollShape(randomEngine);
-	
-	// Vector for holding shape
-	std::vector <std::string> shape;
-
-	// Processing which which shape to draw
-	switch (roll)
+	if (m_levelData[position.y][position.x] == '.')
 	{
-	case 1:
-		shape = RZShape.GetShape();
-		if (CanPlaceBlock(x, y, shape))
+		if (m_level.InsertBlock(position, m_levelData, m_blocks, { 3, 4 }, m_blockTypes))
 		{
-			m_blockTypes.push_back(RZShape);
-			m_blocks.back()->AddShape(RZShape);
 			return true;
 		}
-		break;
-	case 2:
-		shape = ZShape.GetShape();
-		if (CanPlaceBlock(x, y, shape))
-		{
-			m_blockTypes.push_back(ZShape);
-			m_blocks.back()->AddShape(ZShape);
-			return true;
-		}
-		break;
-	case 3:
-		shape = ZShape2.GetShape();
-		if (CanPlaceBlock(x, y, shape))
-		{	
-			m_blockTypes.push_back(ZShape);
-			m_blocks.back()->AddShape(ZShape);
-			return true;
-		}
-		break;
-	case 4:
-		shape = RZShape2.GetShape();
-		if (CanPlaceBlock(x, y, shape))
-		{
-			m_blockTypes.push_back(RZShape);
-			m_blocks.back()->AddShape(RZShape);
-			return true;
-		}
-		break;
 	}
 	return false;
 }
@@ -319,12 +272,12 @@ void MainGame::RemoveBlock()
 		mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 17)
 	{
 		// Return index to block we have to remove
-		int index = FindBlock(mousePosition);
+		int index = FindBlock(mousePosition, m_blocks);
 		if (index != -1)
 		{
 			for (auto i = m_stackQueue.begin(); i != m_stackQueue.end(); i++)
 			{
-				if (i->GetShape() == m_blocks[index]->GetShape())
+				if (i->GetShape() == m_blocks[index]->GetShape().GetShape())
 				{
 					ProcessRemove(index, i);
 					return;
@@ -334,81 +287,9 @@ void MainGame::RemoveBlock()
 	}
 }
 
-int MainGame::FindBlock(glm::vec2 position)
-{
-	for (int i = 0; i < m_blocks.size(); i++)
-	{
-		std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
-
-		for (int j = 0; j < blockPosition.size(); j++)
-		{
-			if (blockPosition[j] == position)
-			{
-				return i;
-			}
-		}
-	}
-	return -1;
-}
-
-bool MainGame::CanPlaceBlock(int x, int y, std::vector<std::string>& shape)
-{
-	int counter = 0;
-	// Check all tiles from shape 
-	for (int i = 0; i < shape.size(); i++)
-	{
-		for (int j = 0; j < shape[i].size(); j++)
-		{
-			char tile = shape[i][j];
-			if (tile != '.')
-			{
-				if (m_levelData[y + i][x + j] == '.')
-				{
-					counter++;
-				}
-			}
-		}
-	}
-
-	// If all 4 tiles are empty we can draw our block
-	if (counter == 4)
-	{
-		char tile;
-		Block* tmp_block = new Block;
-		for (int i = 0; i < shape.size(); i++)
-		{
-			for (int j = 0; j < shape[i].size(); j++)
-			{
-				tile = shape[i][j];
-				if (tile != '.')
-				{
-					m_levelData[y + i][x + j] = tile;
-					tmp_block->AddSquare(x + j, y + i);
-				}
-			}
-		}
-		m_blocks.push_back(tmp_block);
-		return true;
-	}
-	return false;
-}
-
-void MainGame::MoveUp()
-{
-	for (int i = 0; i < m_blocks.size(); i++)
-	{
-		std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
-		for (int j = 0; j < blockPosition.size(); j++)
-		{
-			blockPosition[j].y -= 1;
-		}
-		m_blocks[i]->SetPosition(blockPosition);
-	}
-}
-
 void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
 {
-		// Check if we can remove block
+	// Check if we can remove block
 	if (m_blocks[index]->CanRemove(m_levelData))
 	{
 		// Adding points to player score
@@ -433,20 +314,41 @@ void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
 	}
 }
 
+int MainGame::FindBlock(glm::vec2 position, std::vector <Block*>& blocks)
+{
+	for (int i = 0; i < blocks.size(); i++)
+	{
+		std::vector <glm::vec2> blockPosition = blocks[i]->GetPosition();
+
+		for (int j = 0; j < blockPosition.size(); j++)
+		{
+			if (blockPosition[j] == position)
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
+void MainGame::MoveUp()
+{
+	for (int i = 0; i < m_blocks.size(); i++)
+	{
+		std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
+		for (int j = 0; j < blockPosition.size(); j++)
+		{
+			blockPosition[j].y -= 1;
+		}
+		m_blocks[i]->SetPosition(blockPosition);
+	}
+}
+
 void MainGame::InitNewBlocks()
 {
-	// Initalizing new blocks data
-	std::ifstream file;
-	std::string input;
-	file.open("Levels/newlanes.txt");
-	if (file.fail())
-	{
-		perror("Levels/newlanes.txt");
-	}
-	while (std::getline(file, input))
-	{
-		m_newBlocksData.push_back(input);
-	}
+	m_level.InitNewBlocks(m_newBlocks);
+
+	m_newBlocksData = m_level.GetNewLinesData();
 
 	// Rolling new blocks
 	for (int y = 0; y < m_newBlocksData.size(); y++)
@@ -456,124 +358,33 @@ void MainGame::InitNewBlocks()
 			char tile = m_newBlocksData[y][x];
 			if (tile == '.')
 			{
-				RollNewBlock(x, y);
-			}
-		}
-	}
-
-	for (int i = 0; i < m_newBlocksData.size(); i++)
-	{
-		std::cout << m_newBlocksData[i] << std::endl;
-	}
-}
-
-void MainGame::RollNewBlock(int x, int y)
-{
-	static std::mt19937 randomEngine(time(NULL));
-	std::uniform_int_distribution <int> roll(1, 5);
-
-	int newBlock = roll(randomEngine);
-	switch (newBlock)
-	{
-	case 1:
-		if (InsertNewBlock(x, y, ZShape.GetShape()))
-		{
-			m_newBlocks.back()->AddShape(ZShape);
-		}
-		break;
-	case 2:
-		if (InsertNewBlock(x, y, RZShape.GetShape()))
-		{
-			m_newBlocks.back()->AddShape(RZShape);
-		}
-		break;
-	case 3:
-		if (InsertNewBlock(x, y, LShape.GetShape()))
-		{
-			m_newBlocks.back()->AddShape(LShape);
-		}
-		break;
-	case 4:
-		if (InsertNewBlock(x, y, RLShape.GetShape()))
-		{
-			m_newBlocks.back()->AddShape(RLShape);
-		}
-		break;
-	case 5:
-		if (InsertNewBlock(x, y, SQShape.GetShape()))
-		{
-			m_newBlocks.back()->AddShape(SQShape);
-		}
-		break;
-	case 6:
-		break;
-	case 7:
-		break;
-	}
-}
-
-bool MainGame::InsertNewBlock(int x, int y, std::vector<std::string>& shape)
-{
-	int counter = 0;
-	// Check all tiles from shape 
-	for (int i = 0; i < shape.size(); i++)
-	{
-		for (int j = 0; j < shape[i].size(); j++)
-		{
-			char tile = shape[i][j];
-			if (tile != '.')
-			{
-				if (m_newBlocksData[y + i][x + j] == '.')
+				if (m_level.InsertBlock({ x, y }, m_newBlocksData, m_newBlocks, { 1, 5 }, m_blockTypes))
 				{
-					counter++;
+					// Some stuff
 				}
 			}
 		}
 	}
-
-	// If all 4 tiles are empty we can draw our block
-	if (counter == 4)
-	{
-		char tile;
-		Block* tmp_block = new Block;
-		for (int i = 0; i < shape.size(); i++)
-		{
-			for (int j = 0; j < shape[i].size(); j++)
-			{
-				tile = shape[i][j];
-				if (tile != '.')
-				{
-					m_newBlocksData[y + i][x + j] = tile;
-					tmp_block->AddSquare(x + j, y + i);
-				}
-			}
-		}
-		
-		m_newBlocks.push_back(tmp_block);
-		return true;
-	}
-	return false;
 }
 
-void MainGame::AddNewBlocks(int lanes)
+void MainGame::AddNewBlocks(int newLines)
 {
-	for (int i = 0; i < m_newBlocksData[lanes].size(); i++)
+	for (int i = 0; i < m_newBlocksData[m_newLines].size(); i++)
 	{
-		char tile = m_newBlocksData[lanes][i];
+		char tile = m_newBlocksData[newLines][i];
 		if (tile != '#' && tile != '.')
 		{
-			int index = FindNewBlock({ i, lanes });
+			int index = FindBlock({ i, newLines }, m_newBlocks);
 			if (index != -1)
 			{
 				Block* tmp_block = new Block;
 				std::vector <glm::vec2> blockPosition = m_newBlocks[index]->GetPosition();
 				for (int i = 0; i < blockPosition.size(); i++)
 				{
-					tmp_block->AddSquare(blockPosition[i].x, blockPosition[i].y + 16 - lanes);
-					std::cout << blockPosition[i].x << " " << blockPosition[i].y + 16 - lanes << std::endl;
+					tmp_block->AddSquare(blockPosition[i].x, blockPosition[i].y + 16 - newLines);
 				}
-				m_blockTypes.push_back(m_newBlocks[index]->GetRealShape());
-				tmp_block->AddShape(m_newBlocks[index]->GetRealShape());
+				m_blockTypes.push_back(m_newBlocks[index]->GetShape());
+				tmp_block->AddShape(m_newBlocks[index]->GetShape());
 				m_blocks.push_back(tmp_block);
 				
 				delete m_newBlocks[index];
@@ -582,23 +393,6 @@ void MainGame::AddNewBlocks(int lanes)
 			}
 		}
 	}
-
-}
-
-int MainGame::FindNewBlock(glm::vec2 position)
-{
-	for (int i = 0; i < m_newBlocks.size(); i++)
-	{
-		std::vector <glm::vec2> blocksPosition = m_newBlocks[i]->GetPosition();
-		for (int j = 0; j < blocksPosition.size(); j++)
-		{
-			if (blocksPosition[j].x == position.x && blocksPosition[j].y == position.y)
-			{
-				return i;
-			}
-		}
-	}
-	return -1;
 }
 
 // Queue functions
@@ -658,7 +452,6 @@ bool MainGame::DrawQueue()
 		std::vector <std::string> tmp_shape = it->GetShape();
 		for (int i = 0; i < tmp_shape.size(); i++)
 		{
-			std::cout << tmp_shape[i] << std::endl;
 			for (int j = 0; j < tmp_shape[i].size(); j++)
 			{
 				char tile = tmp_shape[i][j];
@@ -668,7 +461,6 @@ bool MainGame::DrawQueue()
 				}
 			}
 		}
-		std::cout << "\n\n";
 		counter++;
 	}
 	return true;

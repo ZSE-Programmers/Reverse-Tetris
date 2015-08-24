@@ -14,7 +14,7 @@ Block::~Block()
 
 void Block::AddSquare(int x, int y)
 {
-	m_position.push_back(glm::vec2(x, y));
+	m_position.push_back({ x, y });
 }
 
 void Block::AddShape(Shape shape)

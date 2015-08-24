@@ -18,9 +18,9 @@ public:
 
 	std::vector <glm::vec2> GetPosition() { return m_position; }
 
-	std::vector <std::string> GetShape() { return m_shape.GetShape(); }
+	Shape& GetShape() { return m_shape; }
 
-	Shape GetRealShape() { return m_shape; }
+
 
 	void SetPosition(std::vector <glm::vec2> position);
 

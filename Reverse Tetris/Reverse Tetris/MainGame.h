@@ -29,22 +29,22 @@ private:
 	void Draw();
 	void Update();
 	void ProcessInput();
-	void InitBlocks();
+	void InitShapes();
 	void InitLevel();
 
-	bool InsertBlock(int x, int y);
+	bool InitBlocks(glm::vec2 position);
 	void RemoveBlock();
-	int FindBlock(glm::vec2 position);
-	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
-	void MoveUp();
 	void ProcessRemove(int index, std::list<Shape>::iterator& it);
+	
+	int FindBlock(glm::vec2 position, std::vector <Block*>& blocks);
+
+	void MoveUp();
+
 
 	// New blocks func
 	void InitNewBlocks();
-	void RollNewBlock(int x, int y);
-	bool InsertNewBlock(int x, int y, std::vector <std::string>& shape);
 	void AddNewBlocks(int lanes);
-	int FindNewBlock(glm::vec2 position);
+
 
 	// Queue functions
 	void InitQueue();
@@ -67,6 +67,8 @@ private:
 
 	// Textures
 	SDL_Texture* m_levelTexture;
+
+	// Blocks textures
 	SDL_Texture* m_blueSquare;
 	SDL_Texture* m_redSquare;
 	SDL_Texture* m_greenSquare;
@@ -74,6 +76,7 @@ private:
 	SDL_Texture* m_yellowSquare;
 	SDL_Texture* m_pinkSquare;
 
+	// Font textures
 	SDL_Texture* m_textTexture;
 	TTF_Font* m_font;
 
@@ -89,31 +92,36 @@ private:
 	Shape m_emptyShape;
 
 	// Hold all blocks
+	std::vector <std::string> m_levelData;
 	std::vector <Block*> m_blocks;
 
-	std::vector <Block*> m_newBlocks;
+	// Hold all new blocks
 	std::vector <std::string> m_newBlocksData;
+	std::vector <Block*> m_newBlocks;
 
-	// Number of types block
+	// All shapes that exsist on map for making valid queue
 	std::vector <Shape> m_blockTypes;
 
 	// List of blocks in queue
 	std::list <Shape> m_stackQueue;
 
+	// Queue position
 	static const int QUEUE_SIZE = 3;
 	const glm::vec2 QUEUE_POSITIONS[QUEUE_SIZE] = { {18, 2}, {18, 6}, {18, 10} };
+
 	// Hold game state
 	GameState m_gameState;
 
-	// Keep level position 
-	std::vector <std::string> m_levelData;
-
+	// Textures width
 	const int TILE_WIDTH = 32;
 
+	// Speed of blocks moving up
 	int m_speed;
 
-	int LANES;
+	// Number of new lanes already appeared
+	int m_newLines;
 
+	// Pplayer score
 	int m_score;
 };
 
