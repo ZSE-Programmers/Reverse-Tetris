@@ -5,8 +5,18 @@
 
 MainGame::MainGame()
 {
+	TTF_Init();
 	m_gameState = GameState::PLAY;
 	LANES = 0;
+	m_speed = 4;
+
+	m_font = nullptr;
+	m_font = TTF_OpenFont("Fonts/BEBAS.ttf", 32);
+	if (m_font == nullptr)
+	{
+		std::cout << "Could not load font" << std::endl;
+	}
+	m_score = 0;
 }
 
 MainGame::~MainGame()
@@ -75,8 +85,9 @@ void MainGame::GameLoop()
 		}
 
 		counter++;
-		if (counter > 60)
+		if (SDL_GetTicks() / 1000.0f > m_speed)
 		{
+			m_speed += 4 * 0.95;
 			for (int y = 0; y < m_levelData.size(); y++)
 			{
 				for (int x = 0; x < m_levelData[y].size(); x++)
@@ -142,9 +153,18 @@ void MainGame::Draw()
 			case '7':
 				SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
 				break;
+			case '+':
+				// Timer
+				break;
+			case '0':
+				// Points
+				break;
 			}
 		}
 	}
+
+	UpdateScore();
+
 	SDL_RenderPresent(m_renderer);
 }
 
@@ -154,9 +174,15 @@ void MainGame::Update()
 	{
 		RemoveBlock();
 	}
-	if (m_blocks.empty())
+	for (int i = 1; i < m_levelData[2].size(); i++)
 	{
-		m_gameState = GameState::EXIT;
+		if (i < 14)
+		{
+			if (m_levelData[2][i] != '.')
+			{
+				m_gameState = GameState::EXIT;
+			}
+		}
 	}
 }
 
@@ -385,6 +411,9 @@ void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
 		// Check if we can remove block
 	if (m_blocks[index]->CanRemove(m_levelData))
 	{
+		// Adding points to player score
+		m_score += 10;
+
 		// Processing queue
 		RemoveQueue(it);
 		UpdateQueue();
@@ -661,5 +690,56 @@ void MainGame::RemoveQueue(std::list<Shape>::iterator& it)
 		counter++;
 	}
 	m_stackQueue.erase(it);
+}
+
+void MainGame::UpdateScore()
+{
+	// Updating player score
+	std::string str = std::to_string(m_score);
+	SDL_Color textColor = { 255, 255, 255, 255 };
+
+	SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, str.c_str(), textColor);
+	if (textSurface == NULL)
+	{
+		std::cout << "Unable to create text surface!" << std::endl;
+	}
+	else
+	{
+		m_textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+		if (m_textTexture == NULL)
+		{
+			std::cout << "Unable to create text texture!\n";
+		}
+
+		SDL_FreeSurface(textSurface);
+	}
+
+	SDL_Rect destRect = { 550, 473, 100, 38 };
+
+	SDL_RenderCopy(m_renderer, m_textTexture, 0, &destRect);
+
+
+	// Updating player time 
+	str = std::to_string(SDL_GetTicks()/1000.0f);
+
+
+	textSurface = TTF_RenderText_Solid(m_font, str.c_str(), textColor);
+	if (textSurface == NULL)
+	{
+		std::cout << "Unable to create text surface!" << std::endl;
+	}
+	else
+	{
+		m_textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+		if (m_textTexture == NULL)
+		{
+			std::cout << "Unable to create text texture!\n";
+		}
+
+		SDL_FreeSurface(textSurface);
+	}
+	destRect = { 550, 538, 100, 38 };
+
+	SDL_RenderCopy(m_renderer, m_textTexture, 0, &destRect);
 }
 

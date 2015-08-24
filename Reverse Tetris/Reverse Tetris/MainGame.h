@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL/SDL.h>
 #include <SDL/SDL_timer.h>
+#include <SDL/SDL_ttf.h>
 #include <list>
 
 #include "Window.h"
@@ -51,6 +52,9 @@ private:
 	bool DrawQueue();
 	void RemoveQueue(std::list<Shape>::iterator& it);
 
+
+	void UpdateScore();
+
 	// Classes
 	Window m_window;
 	InputManager m_inputManager;
@@ -69,6 +73,9 @@ private:
 	SDL_Texture* m_purpleSquare;
 	SDL_Texture* m_yellowSquare;
 	SDL_Texture* m_pinkSquare;
+
+	SDL_Texture* m_textTexture;
+	TTF_Font* m_font;
 
 	// Shapes
 	Shape LShape;
@@ -102,9 +109,11 @@ private:
 	std::vector <std::string> m_levelData;
 
 	const int TILE_WIDTH = 32;
-	const int FRAMES_PER_SECOND = 60;
-	const int SCREEN_TICKS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
+
+	int m_speed;
 
 	int LANES;
+
+	int m_score;
 };
 
