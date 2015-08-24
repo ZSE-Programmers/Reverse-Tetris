@@ -11,7 +11,14 @@ MainGame::MainGame()
 
 MainGame::~MainGame()
 {
-	
+	for (int i = 0; i < m_blocks.size(); i++)
+	{
+		delete m_blocks[i];
+	}
+	for (int i = 0; i < m_newBlocks.size(); i++)
+	{
+		delete m_newBlocks[i];
+	}
 }
 
 void MainGame::Run()
@@ -59,9 +66,16 @@ void MainGame::GameLoop()
 
 		ProcessInput();
 
+		// If new blocks file is at the end we roll new blocks
+		if (LANES == m_newBlocksData.size() - 2)
+		{
+			m_newBlocksData.clear();
+			InitNewBlocks();
+			LANES = 0;
+		}
 
 		counter++;
-		if (counter > 180)
+		if (counter > 60)
 		{
 			for (int y = 0; y < m_levelData.size(); y++)
 			{
@@ -282,27 +296,12 @@ void MainGame::RemoveBlock()
 		int index = FindBlock(mousePosition);
 		if (index != -1)
 		{
-			if (m_blocks[index]->GetShape() == m_stackQueue.front().GetShape())
+			for (auto i = m_stackQueue.begin(); i != m_stackQueue.end(); i++)
 			{
-				// Check if we can remove block
-				if (m_blocks[index]->CanRemove(m_levelData))
+				if (i->GetShape() == m_blocks[index]->GetShape())
 				{
-					// Processing queue
-					RemoveQueue();
-					UpdateQueue();
-					DrawQueue();
-
-					// Position of squares that we can to replace by '.'
-					std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
-					// Deleting block
-					delete m_blocks[index];
-					m_blocks[index] = m_blocks.back();
-					m_blocks.pop_back();
-					// Replacing sqaures by '.'
-					for (int i = 0; i < squarePosition.size(); i++)
-					{
-						m_levelData[squarePosition[i].y][squarePosition[i].x] = '.';
-					}
+					ProcessRemove(index, i);
+					return;
 				}
 			}
 		}
@@ -378,6 +377,30 @@ void MainGame::MoveUp()
 			blockPosition[j].y -= 1;
 		}
 		m_blocks[i]->SetPosition(blockPosition);
+	}
+}
+
+void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
+{
+		// Check if we can remove block
+	if (m_blocks[index]->CanRemove(m_levelData))
+	{
+		// Processing queue
+		RemoveQueue(it);
+		UpdateQueue();
+		DrawQueue();
+
+		// Position of squares that we can to replace by '.'
+		std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
+		// Deleting block
+		delete m_blocks[index];
+		m_blocks[index] = m_blocks.back();
+		m_blocks.pop_back();
+		// Replacing sqaures by '.'
+		for (int i = 0; i < squarePosition.size(); i++)
+		{
+			m_levelData[squarePosition[i].y][squarePosition[i].x] = '.';
+		}
 	}
 }
 
@@ -517,7 +540,8 @@ void MainGame::AddNewBlocks(int lanes)
 				std::vector <glm::vec2> blockPosition = m_newBlocks[index]->GetPosition();
 				for (int i = 0; i < blockPosition.size(); i++)
 				{
-					tmp_block->AddSquare(blockPosition[i].x, blockPosition[i].y + 17 - lanes);
+					tmp_block->AddSquare(blockPosition[i].x, blockPosition[i].y + 16 - lanes);
+					std::cout << blockPosition[i].x << " " << blockPosition[i].y + 16 - lanes << std::endl;
 				}
 				m_blockTypes.push_back(m_newBlocks[index]->GetRealShape());
 				tmp_block->AddShape(m_newBlocks[index]->GetRealShape());
@@ -621,7 +645,7 @@ bool MainGame::DrawQueue()
 	return true;
 }
 
-void MainGame::RemoveQueue()
+void MainGame::RemoveQueue(std::list<Shape>::iterator& it)
 {
 	int counter = 0;
 	for (auto it = m_stackQueue.begin(); it != m_stackQueue.end(); it++)
@@ -636,6 +660,6 @@ void MainGame::RemoveQueue()
 		}
 		counter++;
 	}
-	m_stackQueue.pop_front();
+	m_stackQueue.erase(it);
 }
 

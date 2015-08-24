@@ -36,6 +36,7 @@ private:
 	int FindBlock(glm::vec2 position);
 	bool CanPlaceBlock(int x, int y, std::vector <std::string>& shape);
 	void MoveUp();
+	void ProcessRemove(int index, std::list<Shape>::iterator& it);
 
 	// New blocks func
 	void InitNewBlocks();
@@ -48,7 +49,7 @@ private:
 	void InitQueue();
 	bool UpdateQueue();
 	bool DrawQueue();
-	void RemoveQueue();
+	void RemoveQueue(std::list<Shape>::iterator& it);
 
 	// Classes
 	Window m_window;
