@@ -3,20 +3,16 @@
 #include <random>
 #include <ctime>
 
-MainGame::MainGame()
+MainGame::MainGame() : m_gameState(GameState::PLAY), m_newLines(0), m_speed(4.0f), m_font(nullptr), m_score(0)
 {
     TTF_Init();
-    m_gameState = GameState::PLAY;
-    m_newLines = 0;
-    m_speed = 4;
-
-    m_font = nullptr;
+    // Initalizing font
     m_font = TTF_OpenFont("Fonts/BEBAS.ttf", 32);
     if (m_font == nullptr)
     {
         std::cout << "Could not load font" << std::endl;
     }
-    m_score = 0;
+
 }
 
 MainGame::~MainGame()
@@ -53,9 +49,9 @@ void MainGame::InitSystems()
     m_purpleSquare = m_sprite.LoadTexture("Textures/element_purple_cube_glossy.png", m_renderer);
     m_yellowSquare = m_sprite.LoadTexture("Textures/element_yellow_square.png", m_renderer);
     m_pinkSquare = m_sprite.LoadTexture("Textures/pink_square.png", m_renderer);
-
-    // Adding shapes for each block
-    InitShapes();
+    m_graySquare = m_sprite.LoadTexture("Textures/playfield_border.bmp", m_renderer);
+    m_horizontalBorder = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
+    m_verticalBorder = m_sprite.LoadTexture("Textures/border_vertical.png", m_renderer);
 
     // Loading first blocks on map
     InitLevel();
@@ -141,31 +137,41 @@ void MainGame::Draw()
                 break;
             case '4':
                 SDL_RenderCopy(m_renderer, m_purpleSquare, NULL, &destRect);
+                destRect.w = 32;
+                destRect.h = 3;
+                SDL_RenderCopy(m_renderer, m_horizontalBorder, NULL, &destRect);
+                destRect.w = 3;
+                destRect.h = 32;
+                SDL_RenderCopy(m_renderer, m_verticalBorder, NULL, &destRect);
                 break;
             case '5':
                 SDL_RenderCopy(m_renderer, m_yellowSquare, NULL, &destRect);
                 break;
             case '6':
-                SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
+                SDL_RenderCopy(m_renderer, m_pinkSquare, NULL, &destRect);
                 break;
             case '7':
-                SDL_RenderCopy(m_renderer, m_greenSquare, NULL, &destRect);
+                SDL_RenderCopy(m_renderer, m_graySquare, NULL, &destRect);
                 break;
             }
         }
     }
 
-    UpdateScore();
-
+    // Render player score
+    m_window.RenderScore(m_score, m_font, m_renderer, m_textTexture);
+    
     SDL_RenderPresent(m_renderer);
 }
 
 void MainGame::Update()
 {
+    // If player click block process remove
     if (m_inputManager.IsButtonPressed())
     {
         RemoveBlock();
     }
+
+    // Check if player lost
     for (int i = 1; i < m_levelData[2].size(); i++)
     {
         if (i < 14)
@@ -180,46 +186,32 @@ void MainGame::Update()
 
 void MainGame::ProcessInput()
 {
-	SDL_Event tmp_event;
-	while (SDL_PollEvent(&tmp_event))
-	{
-		switch (tmp_event.type)
-		{
-		case SDL_QUIT:
-			m_gameState = GameState::EXIT;
-			exit(1);
-			break;
-		case SDL_MOUSEMOTION:
-			m_inputManager.SetMousePosition(glm::vec2(tmp_event.motion.x, tmp_event.motion.y));
-			break;
-		case SDL_MOUSEBUTTONDOWN:
-			m_inputManager.PressButton();
-			break;
-		case SDL_MOUSEBUTTONUP:
-			m_inputManager.ReleaseButton();
-			break;
-		case SDL_KEYDOWN:
-			m_inputManager.PressKey(tmp_event.key.keysym.sym);
-			break;
-		case SDL_KEYUP:
-			m_inputManager.ReleaseKey(tmp_event.key.keysym.sym);
-			break;
-		}
-	}
-}
-
-void MainGame::InitShapes()
-{
-    LShape.Init("Levels/LShape.txt", 1);
-    RLShape.Init("Levels/RLShape.txt", 2);
-    ZShape.Init("Levels/ZShape.txt", 3);
-    RZShape.Init("Levels/RZShape.txt", 4);
-    SQShape.Init("Levels/SQShape.txt", 5);
-
-    ZShape2.Init("Levels/ZShape2.txt", 3);
-    RZShape2.Init("Levels/RZShape2.txt", 4);
-
-    m_emptyShape.Init("Levels/EmptyShape.txt", -1);
+    SDL_Event tmp_event;
+    while (SDL_PollEvent(&tmp_event))
+    {
+        switch (tmp_event.type)
+        {
+        case SDL_QUIT:
+            m_gameState = GameState::EXIT;
+            exit(1);
+            break;
+        case SDL_MOUSEMOTION:
+            m_inputManager.SetMousePosition(glm::vec2(tmp_event.motion.x, tmp_event.motion.y));
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            m_inputManager.PressButton();
+            break;
+        case SDL_MOUSEBUTTONUP:
+            m_inputManager.ReleaseButton();
+            break;
+        case SDL_KEYDOWN:
+            m_inputManager.PressKey(tmp_event.key.keysym.sym);
+            break;
+        case SDL_KEYUP:
+            m_inputManager.ReleaseKey(tmp_event.key.keysym.sym);
+            break;
+        }
+    }
 }
 
 void MainGame::InitLevel()
@@ -245,9 +237,10 @@ void MainGame::InitLevel()
 
 bool MainGame::InitBlocks(glm::vec2 position)
 {
+    // Initalizing only with Z shape (range 3,4)
     if (m_levelData[position.y][position.x] == '.')
     {
-        if (m_level.InsertBlock(position, m_levelData, m_blocks, { 3, 4 }, m_blockTypes))
+        if (m_level.InsertBlock(position, m_levelData, m_blocks, true, m_blockTypes))
         {
             return true;
         }
@@ -263,7 +256,7 @@ void MainGame::RemoveBlock()
 
     // Check if this is block or just a part of map
     if (m_levelData[mousePosition.y][mousePosition.x] != '.' &&
-    mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 17)
+    mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 16)
     {
         // Return index to block we have to remove
         int index = FindBlock(mousePosition, m_blocks);
@@ -271,7 +264,7 @@ void MainGame::RemoveBlock()
         {
             for (auto i = m_stackQueue.begin(); i != m_stackQueue.end(); i++)
             {
-                if (i->GetShape() == m_blocks[index]->GetShape().GetShape())
+                if (i->GetType() == m_blocks[index]->GetShape().GetType())
                 {
                     ProcessRemove(index, i);
                     return;
@@ -313,7 +306,6 @@ int MainGame::FindBlock(glm::vec2 position, std::vector <Block*>& blocks)
     for (int i = 0; i < blocks.size(); i++)
     {
         std::vector <glm::vec2> blockPosition = blocks[i]->GetPosition();
-
         for (int j = 0; j < blockPosition.size(); j++)
         {
             if (blockPosition[j] == position)
@@ -352,7 +344,7 @@ void MainGame::InitNewBlocks()
             char tile = m_newBlocksData[y][x];
             if (tile == '.')
             {
-                if (m_level.InsertBlock({ x, y }, m_newBlocksData, m_newBlocks, { 1, 5 }, m_blockTypes))
+                if (m_level.InsertBlock({ x, y }, m_newBlocksData, m_newBlocks, false, m_blockTypes))
                 {
                     // Some stuff
                 }
@@ -389,9 +381,6 @@ void MainGame::AddNewBlocks(int newLines)
     }
 }
 
-// Queue functions
-// Initalizing, updating, drawing and removing blocks in queue
-
 void MainGame::InitQueue()
 {
     if (!m_blockTypes.empty())
@@ -400,7 +389,7 @@ void MainGame::InitQueue()
         for (int i = 0; i < QUEUE_SIZE; i++)
         {
             // Random generator
-            std::mt19937 randomEngine(time(NULL));
+            static std::mt19937 randomEngine(time(NULL));
             std::uniform_int_distribution <int> roll(0, m_blockTypes.size() - 1);
             int index = roll(randomEngine);
 
@@ -425,8 +414,19 @@ bool MainGame::UpdateQueue()
     }
     else
     {
-        std::mt19937 randomEngine(time(NULL));
-        std::uniform_int_distribution <int> roll(0, m_blockTypes.size() - 1);
+        int x, y;
+        static std::mt19937 randomEngine(time(NULL));
+        if (m_blockTypes.size() > 10)
+        {
+            x = 0;
+            y = 10;
+        }
+        else
+        {
+            x = 0;
+            y = m_blockTypes.size() - 1;
+        }
+        std::uniform_int_distribution <int> roll(x, y);
         int index = -1;
         index = roll(randomEngine);
 
@@ -477,55 +477,3 @@ void MainGame::RemoveQueue(std::list<Shape>::iterator& it)
     }
     m_stackQueue.erase(it);
 }
-
-void MainGame::UpdateScore()
-{
-    // Updating player score
-    std::string str = std::to_string(m_score);
-    SDL_Color textColor = { 255, 255, 255, 255 };
-
-    SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, str.c_str(), textColor);
-    if (textSurface == NULL)
-    {
-        std::cout << "Unable to create text surface!" << std::endl;
-    }
-    else
-    {
-        m_textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
-        if (m_textTexture == NULL)
-        {
-            std::cout << "Unable to create text texture!\n";
-        }
-
-        SDL_FreeSurface(textSurface);
-    }
-
-    SDL_Rect destRect = { 550, 473, 100, 38 };
-
-    SDL_RenderCopy(m_renderer, m_textTexture, 0, &destRect);
-
-
-    // Updating player time 
-    str = std::to_string(SDL_GetTicks()/1000.0f);
-
-
-    textSurface = TTF_RenderText_Solid(m_font, str.c_str(), textColor);
-    if (textSurface == NULL)
-    {
-        std::cout << "Unable to create text surface!" << std::endl;
-    }
-    else
-    {
-        m_textTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
-        if (m_textTexture == NULL)
-        {
-            std::cout << "Unable to create text texture!\n";
-        }
-
-        SDL_FreeSurface(textSurface);
-    }
-    destRect = { 550, 538, 100, 38 };
-
-    SDL_RenderCopy(m_renderer, m_textTexture, 0, &destRect);
-}
-

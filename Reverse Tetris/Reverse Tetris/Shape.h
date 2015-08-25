@@ -14,6 +14,7 @@ public:
     // Getters
     std::vector <std::string>& GetShape() { return m_shape; }
     glm::vec2& GetPosition() { return m_position; }
+    int& GetType() { return m_type; }
 
     // Setters
     void SetPosition(glm::vec2 position);

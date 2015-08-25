@@ -12,7 +12,7 @@ public:
     Level();
     ~Level();
 
-    bool InsertBlock(glm::vec2 position, std::vector <std::string>& data, std::vector <Block*>& blocks, glm::vec2 range, std::vector <Shape>& blockTypes);
+    bool InsertBlock(glm::vec2 position, std::vector <std::string>& data, std::vector <Block*>& blocks, bool isInitial, std::vector <Shape>& blockTypes);
 
     Block* FitBlock(glm::vec2& position, std::vector <std::string>& data, std::vector <std::string>& shape);
 
@@ -31,11 +31,32 @@ private:
 
     std::vector <std::string> m_newBlocksData;
 
+    std::vector <Shape*> m_shapes;
 
     Shape LShape;
+    Shape LShape2;
+    Shape LShape3;
+    Shape LShape4;
+
     Shape RLShape;
+    Shape RLShape2;
+    Shape RLShape3;
+    Shape RLShape4;
+
     Shape ZShape;
+    Shape ZShape2;
+
     Shape RZShape;
+    Shape RZShape2;
+
     Shape SQShape;
+
+    Shape IShape;
+    Shape IShape2;
+
+    Shape TShape;
+    Shape TShape2;
+    Shape TShape3;
+    Shape TShape4;
 };
 

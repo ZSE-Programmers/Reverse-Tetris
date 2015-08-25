@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
+#include <SDL/SDL_ttf.h>
 
 class Window
 {
@@ -9,7 +10,7 @@ public:
     ~Window();
 
     void Create(int width, int height);
-
+    void RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_Texture* textTexture);
     SDL_Renderer*& GetRenderer() { return m_renderer; }
 private:
     SDL_Window* m_window;

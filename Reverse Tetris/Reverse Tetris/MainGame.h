@@ -29,7 +29,6 @@ private:
     void Draw();
     void Update();
     void ProcessInput();
-    void InitShapes();
     void InitLevel();
 
     bool InitBlocks(glm::vec2 position);
@@ -53,7 +52,6 @@ private:
     void RemoveQueue(std::list<Shape>::iterator& it);
 
 
-    void UpdateScore();
 
     // Classes
     Window m_window;
@@ -75,6 +73,9 @@ private:
     SDL_Texture* m_purpleSquare;
     SDL_Texture* m_yellowSquare;
     SDL_Texture* m_pinkSquare;
+    SDL_Texture* m_graySquare;
+    SDL_Texture* m_horizontalBorder;
+    SDL_Texture* m_verticalBorder;
 
     // Font textures
     SDL_Texture* m_textTexture;
@@ -116,7 +117,7 @@ private:
     const int TILE_WIDTH = 32;
 
     // Speed of blocks moving up
-    int m_speed;
+    float m_speed;
 
     // Number of new lanes already appeared
     int m_newLines;
