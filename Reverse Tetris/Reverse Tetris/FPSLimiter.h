@@ -4,18 +4,18 @@
 class FPSLimiter
 {
 public:
-	FPSLimiter();
-	~FPSLimiter();
+    FPSLimiter();
+    ~FPSLimiter();
 
-	void Start();
-	float End();
+    void Start();
+    float End();
 
-	void CalculateFPS();
+    void CalculateFPS();
 
 private:
-	float m_fps;
-	float m_maxFPS;
-	float m_frameTime;
-	Uint32 m_startTicks;
+    float m_fps;
+    float m_maxFPS;
+    float m_frameTime;
+    Uint32 m_startTicks;
 };
 

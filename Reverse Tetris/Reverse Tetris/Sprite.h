@@ -5,8 +5,8 @@
 class Sprite
 {
 public:
-	Sprite();
-	~Sprite();
-	SDL_Texture* LoadTexture(std::string filePath, SDL_Renderer* renderer);
+    Sprite();
+    ~Sprite();
+    SDL_Texture* LoadTexture(std::string filePath, SDL_Renderer* renderer);
 };
 

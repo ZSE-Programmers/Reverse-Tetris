@@ -17,111 +17,111 @@ enum class GameState{PLAY, EXIT};
 class MainGame
 {
 public:
-	MainGame();
-	~MainGame();
+    MainGame();
+    ~MainGame();
 
-	void Run();
+    void Run();
 
 private:
-	// Functions
-	void InitSystems();
-	void GameLoop();
-	void Draw();
-	void Update();
-	void ProcessInput();
-	void InitShapes();
-	void InitLevel();
+    // Functions
+    void InitSystems();
+    void GameLoop();
+    void Draw();
+    void Update();
+    void ProcessInput();
+    void InitShapes();
+    void InitLevel();
 
-	bool InitBlocks(glm::vec2 position);
-	void RemoveBlock();
-	void ProcessRemove(int index, std::list<Shape>::iterator& it);
-	
-	int FindBlock(glm::vec2 position, std::vector <Block*>& blocks);
+    bool InitBlocks(glm::vec2 position);
+    void RemoveBlock();
+    void ProcessRemove(int index, std::list<Shape>::iterator& it);
 
-	void MoveUp();
+    int FindBlock(glm::vec2 position, std::vector <Block*>& blocks);
 
-
-	// New blocks func
-	void InitNewBlocks();
-	void AddNewBlocks(int lanes);
+    void MoveUp();
 
 
-	// Queue functions
-	void InitQueue();
-	bool UpdateQueue();
-	bool DrawQueue();
-	void RemoveQueue(std::list<Shape>::iterator& it);
+    // New blocks func
+    void InitNewBlocks();
+    void AddNewBlocks(int lanes);
 
 
-	void UpdateScore();
+    // Queue functions
+    void InitQueue();
+    bool UpdateQueue();
+    bool DrawQueue();
+    void RemoveQueue(std::list<Shape>::iterator& it);
 
-	// Classes
-	Window m_window;
-	InputManager m_inputManager;
-	Level m_level;
-	Sprite m_sprite;
-	FPSLimiter m_fps;
 
-	// Game renderer
-	SDL_Renderer* m_renderer;
+    void UpdateScore();
 
-	// Textures
-	SDL_Texture* m_levelTexture;
+    // Classes
+    Window m_window;
+    InputManager m_inputManager;
+    Level m_level;
+    Sprite m_sprite;
+    FPSLimiter m_fps;
 
-	// Blocks textures
-	SDL_Texture* m_blueSquare;
-	SDL_Texture* m_redSquare;
-	SDL_Texture* m_greenSquare;
-	SDL_Texture* m_purpleSquare;
-	SDL_Texture* m_yellowSquare;
-	SDL_Texture* m_pinkSquare;
+    // Game renderer
+    SDL_Renderer* m_renderer;
 
-	// Font textures
-	SDL_Texture* m_textTexture;
-	TTF_Font* m_font;
+    // Textures
+    SDL_Texture* m_levelTexture;
 
-	// Shapes
-	Shape LShape;
-	Shape RLShape;
-	Shape ZShape;
-	Shape RZShape;
-	Shape SQShape;
-	Shape ZShape2;
-	Shape RZShape2;
+    // Blocks textures
+    SDL_Texture* m_blueSquare;
+    SDL_Texture* m_redSquare;
+    SDL_Texture* m_greenSquare;
+    SDL_Texture* m_purpleSquare;
+    SDL_Texture* m_yellowSquare;
+    SDL_Texture* m_pinkSquare;
 
-	Shape m_emptyShape;
+    // Font textures
+    SDL_Texture* m_textTexture;
+    TTF_Font* m_font;
 
-	// Hold all blocks
-	std::vector <std::string> m_levelData;
-	std::vector <Block*> m_blocks;
+    // Shapes
+    Shape LShape;
+    Shape RLShape;
+    Shape ZShape;
+    Shape RZShape;
+    Shape SQShape;
+    Shape ZShape2;
+    Shape RZShape2;
 
-	// Hold all new blocks
-	std::vector <std::string> m_newBlocksData;
-	std::vector <Block*> m_newBlocks;
+    Shape m_emptyShape;
 
-	// All shapes that exsist on map for making valid queue
-	std::vector <Shape> m_blockTypes;
+    // Hold all blocks
+    std::vector <std::string> m_levelData;
+    std::vector <Block*> m_blocks;
 
-	// List of blocks in queue
-	std::list <Shape> m_stackQueue;
+    // Hold all new blocks
+    std::vector <std::string> m_newBlocksData;
+    std::vector <Block*> m_newBlocks;
 
-	// Queue position
-	static const int QUEUE_SIZE = 3;
-	const glm::vec2 QUEUE_POSITIONS[QUEUE_SIZE] = { {18, 2}, {18, 6}, {18, 10} };
+    // All shapes that exsist on map for making valid queue
+    std::vector <Shape> m_blockTypes;
 
-	// Hold game state
-	GameState m_gameState;
+    // List of blocks in queue
+    std::list <Shape> m_stackQueue;
 
-	// Textures width
-	const int TILE_WIDTH = 32;
+    // Queue position
+    static const int QUEUE_SIZE = 3;
+    const glm::vec2 QUEUE_POSITIONS[QUEUE_SIZE] = { {18, 2}, {18, 6}, {18, 10} };
 
-	// Speed of blocks moving up
-	int m_speed;
+    // Hold game state
+    GameState m_gameState;
 
-	// Number of new lanes already appeared
-	int m_newLines;
+    // Textures width
+    const int TILE_WIDTH = 32;
 
-	// Pplayer score
-	int m_score;
-};
+    // Speed of blocks moving up
+    int m_speed;
+
+    // Number of new lanes already appeared
+    int m_newLines;
+
+    // Pplayer score
+    int m_score;
+    };
 
