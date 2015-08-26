@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <list>
 #include <glm/glm.hpp>
 
 #include "Block.h"
@@ -12,7 +13,7 @@ public:
     Level();
     ~Level();
 
-    bool InsertBlock(glm::vec2 position, std::vector <std::string>& data, std::vector <Block*>& blocks, bool isInitial, std::vector <Shape>& blockTypes);
+    bool InsertBlock(glm::vec2 position, std::vector <std::string>& data, std::vector <Block*>& blocks, bool isInitial, std::list <Shape>& blockTypes);
 
     Block* FitBlock(glm::vec2& position, std::vector <std::string>& data, std::vector <std::string>& shape);
 

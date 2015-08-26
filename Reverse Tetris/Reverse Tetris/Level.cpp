@@ -70,7 +70,7 @@ Level::~Level()
 }
 
 
-bool Level::InsertBlock(glm::vec2 position, std::vector<std::string>& data, std::vector<Block*>& blocks, bool isInitial, std::vector <Shape>& blockTypes)
+bool Level::InsertBlock(glm::vec2 position, std::vector<std::string>& data, std::vector<Block*>& blocks, bool isInitial, std::list <Shape>& blockTypes)
 {
     static std::mt19937 randomEngine(time(NULL));
     std::uniform_int_distribution <int> roll(0, m_shapes.size() - 1);
@@ -89,7 +89,15 @@ bool Level::InsertBlock(glm::vec2 position, std::vector<std::string>& data, std:
 
     if (tmp_block = FitBlock(position, data, m_shapes[newRoll]->GetShape()))
     {
-        blockTypes.push_back(*m_shapes[newRoll]);
+        if (isInitial)
+        {
+            blockTypes.push_front(*m_shapes[newRoll]);
+        }
+        else
+        {
+            blockTypes.push_back(*m_shapes[newRoll]);
+        }
+
         tmp_block->AddShape(*m_shapes[newRoll]);
         blocks.push_back(tmp_block);
         return true;

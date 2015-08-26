@@ -28,6 +28,7 @@ private:
     void GameLoop();
     void Draw();
     void Update();
+    void UpdateBlocks();
     void ProcessInput();
     void InitLevel();
 
@@ -101,7 +102,7 @@ private:
     std::vector <Block*> m_newBlocks;
 
     // All shapes that exsist on map for making valid queue
-    std::vector <Shape> m_blockTypes;
+    std::list <Shape> m_blockTypes;
 
     // List of blocks in queue
     std::list <Shape> m_stackQueue;
@@ -118,6 +119,8 @@ private:
 
     // Speed of blocks moving up
     float m_speed;
+
+    float m_multiplier;
 
     // Number of new lanes already appeared
     int m_newLines;

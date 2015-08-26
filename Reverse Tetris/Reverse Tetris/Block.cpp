@@ -7,7 +7,6 @@ Block::Block()
 
 }
 
-
 Block::~Block()
 {
 }
