@@ -35,7 +35,7 @@ private:
     void RemoveBlock();
     void ProcessRemove(int index, std::list<Shape>::iterator& it);
 
-    int FindBlock(glm::vec2 position, std::vector <Block*>& blocks);
+    int FindBlock(glm::ivec2 position, std::vector <Block*>& blocks);
 
     void MoveUp();
 

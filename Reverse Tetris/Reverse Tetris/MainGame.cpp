@@ -12,7 +12,6 @@ MainGame::MainGame() : m_gameState(GameState::PLAY), m_newLines(0), m_speed(4.0f
     {
         std::cout << "Could not load font" << std::endl;
     }
-
 }
 
 MainGame::~MainGame()
@@ -48,8 +47,8 @@ void MainGame::InitSystems()
     m_greenSquare = m_sprite.LoadTexture("Textures/element_green_square.png", m_renderer);
     m_purpleSquare = m_sprite.LoadTexture("Textures/element_purple_cube_glossy.png", m_renderer);
     m_yellowSquare = m_sprite.LoadTexture("Textures/element_yellow_square.png", m_renderer);
-    m_pinkSquare = m_sprite.LoadTexture("Textures/pink_square.png", m_renderer);
-    m_graySquare = m_sprite.LoadTexture("Textures/playfield_border.bmp", m_renderer);
+    m_pinkSquare = m_sprite.LoadTexture("Textures/white-gray.png", m_renderer);
+    m_graySquare = m_sprite.LoadTexture("Textures/black.png", m_renderer);
     m_horizontalBorder = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
     m_verticalBorder = m_sprite.LoadTexture("Textures/border_vertical.png", m_renderer);
 
@@ -72,7 +71,7 @@ void MainGame::GameLoop()
         ProcessInput();
 
         // If new blocks txt file is at the end we roll new blocks
-        if (m_newLines == m_newBlocksData.size() - 2)
+        if (m_newLines == m_newBlocksData.size() - 4)
         {
             m_newBlocksData.clear();
             InitNewBlocks();
@@ -82,7 +81,7 @@ void MainGame::GameLoop()
         // Moving all blocks one tile up
         if (SDL_GetTicks() / 1000.0f > m_speed)
         {
-            m_speed += 4 * 0.95;
+            m_speed += 4.0f * 0.90;
             for (int y = 0; y < m_levelData.size(); y++)
             {
                 for (int x = 0; x < m_levelData[y].size(); x++)
@@ -106,7 +105,8 @@ void MainGame::GameLoop()
         Update();
         Draw();
 
-        m_fps.End();
+        float fps = m_fps.End();
+        std::cout << fps << std::endl;
     }
 }
 
@@ -137,12 +137,6 @@ void MainGame::Draw()
                 break;
             case '4':
                 SDL_RenderCopy(m_renderer, m_purpleSquare, NULL, &destRect);
-                destRect.w = 32;
-                destRect.h = 3;
-                SDL_RenderCopy(m_renderer, m_horizontalBorder, NULL, &destRect);
-                destRect.w = 3;
-                destRect.h = 32;
-                SDL_RenderCopy(m_renderer, m_verticalBorder, NULL, &destRect);
                 break;
             case '5':
                 SDL_RenderCopy(m_renderer, m_yellowSquare, NULL, &destRect);
@@ -155,6 +149,12 @@ void MainGame::Draw()
                 break;
             }
         }
+    }
+
+    // Draw frames around blocks
+    for (int i = 0; i < m_blocks.size(); i++)
+    {
+        m_blocks[i]->DrawFrame(m_renderer, m_horizontalBorder, m_levelData);
     }
 
     // Render player score
@@ -288,7 +288,7 @@ void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
         DrawQueue();
 
         // Position of squares that we can to replace by '.'
-        std::vector <glm::vec2> squarePosition = m_blocks[index]->GetPosition();
+        std::vector <glm::ivec2> squarePosition = m_blocks[index]->GetPosition();
         // Deleting block
         delete m_blocks[index];
         m_blocks[index] = m_blocks.back();
@@ -301,11 +301,11 @@ void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
     }
 }
 
-int MainGame::FindBlock(glm::vec2 position, std::vector <Block*>& blocks)
+int MainGame::FindBlock(glm::ivec2 position, std::vector <Block*>& blocks)
 {
     for (int i = 0; i < blocks.size(); i++)
     {
-        std::vector <glm::vec2> blockPosition = blocks[i]->GetPosition();
+        std::vector <glm::ivec2> blockPosition = blocks[i]->GetPosition();
         for (int j = 0; j < blockPosition.size(); j++)
         {
             if (blockPosition[j] == position)
@@ -321,7 +321,7 @@ void MainGame::MoveUp()
 {
     for (int i = 0; i < m_blocks.size(); i++)
     {
-        std::vector <glm::vec2> blockPosition = m_blocks[i]->GetPosition();
+        std::vector <glm::ivec2> blockPosition = m_blocks[i]->GetPosition();
         for (int j = 0; j < blockPosition.size(); j++)
         {
             blockPosition[j].y -= 1;
@@ -364,7 +364,7 @@ void MainGame::AddNewBlocks(int newLines)
             if (index != -1)
             {
                 Block* tmp_block = new Block;
-                std::vector <glm::vec2> blockPosition = m_newBlocks[index]->GetPosition();
+                std::vector <glm::ivec2> blockPosition = m_newBlocks[index]->GetPosition();
                 for (int i = 0; i < blockPosition.size(); i++)
                 {
                     tmp_block->AddSquare(blockPosition[i].x, blockPosition[i].y + 16 - newLines);

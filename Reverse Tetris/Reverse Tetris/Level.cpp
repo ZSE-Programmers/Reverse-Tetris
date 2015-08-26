@@ -94,55 +94,6 @@ bool Level::InsertBlock(glm::vec2 position, std::vector<std::string>& data, std:
         blocks.push_back(tmp_block);
         return true;
     }
-
-    //switch (newRoll)
-    //{
-    //    case 1:
-    //        if (tmp_block = FitBlock(position, data, LShape.GetShape()))
-    //        {
-    //            blockTypes.push_back(LShape);
-    //            tmp_block->AddShape(LShape);
-    //            blocks.push_back(tmp_block);
-    //            return true;
-    //        }
-    //        break;
-    //    case 2:
-    //        if (tmp_block = FitBlock(position, data, RLShape.GetShape()))
-    //        {
-    //        blockTypes.push_back(RLShape);
-    //        tmp_block->AddShape(RLShape);
-    //        blocks.push_back(tmp_block);
-    //        return true;
-    //        }
-    //        break;
-    //    case 3:
-    //        if (tmp_block = FitBlock(position, data, ZShape.GetShape()))
-    //        {
-    //        blockTypes.push_back(ZShape);
-    //        tmp_block->AddShape(ZShape);
-    //        blocks.push_back(tmp_block);
-    //        return true;
-    //        }
-    //        break;
-    //    case 4:
-    //        if (tmp_block = FitBlock(position, data, RZShape.GetShape()))
-    //        {
-    //        blockTypes.push_back(RZShape);
-    //        tmp_block->AddShape(RZShape);
-    //        blocks.push_back(tmp_block);
-    //        return true;
-    //        }
-    //        break;
-    //    case 5:
-    //        if (tmp_block = FitBlock(position, data, SQShape.GetShape()))
-    //        {
-    //        blockTypes.push_back(SQShape);
-    //        tmp_block->AddShape(SQShape);
-    //        blocks.push_back(tmp_block);
-    //        return true;
-    //        }
-    //        break;
-    //}
     return false;
 }
 

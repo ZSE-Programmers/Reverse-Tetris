@@ -28,7 +28,7 @@ void Window::Create(int width, int height)
         return;
     }
     // Set background color
-    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(m_renderer, 50, 0, 0, 255);
 
     int imgFlags = IMG_INIT_PNG;
     // Error checking
