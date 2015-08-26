@@ -2,6 +2,7 @@
 #include <iostream>
 #include <random>
 #include <ctime>
+#include <fstream>
 
 MainGame::MainGame() : m_gameState(GameState::PLAY), m_newLines(0), m_speed(4.0f), m_font(nullptr), m_score(0)
 {
@@ -12,6 +13,29 @@ MainGame::MainGame() : m_gameState(GameState::PLAY), m_newLines(0), m_speed(4.0f
     {
         std::cout << "Could not load font" << std::endl;
     }
+
+    // Checking if we need to turn on tutorial
+    std::ifstream file;
+    std::string input;
+    file.open("log.txt");
+    if (file.fail())
+    {
+        perror("Could not open log.txt!");
+    }
+
+    file >> input;
+    int runs;
+    sscanf(input.c_str(), "%d", &runs);
+    if (runs < 3)
+    {
+        // Play tutorial
+        std::cout << runs << std::endl;
+    }
+    runs++;
+    file.clear();
+    file.close();
+
+    // DO OUTPUT 
 }
 
 MainGame::~MainGame()
