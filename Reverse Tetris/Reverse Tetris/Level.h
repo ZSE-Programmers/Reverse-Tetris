@@ -19,6 +19,8 @@ public:
 
     void InitNewBlocks(std::vector <Block*>& blocks);
 
+    void InitTutorial(std::string path, std::vector <std::string> tutorialData, std::vector <Block*>& blocks, std::list <Shape>& blockTypes);
+
 
     // Getters for level data
     std::vector <std::string>& GetLevelData() { return m_levelData; }

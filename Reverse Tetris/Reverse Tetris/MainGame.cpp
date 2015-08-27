@@ -4,7 +4,7 @@
 #include <ctime>
 #include <fstream>
 
-MainGame::MainGame() : m_gameState(GameState::PLAY), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f)
+MainGame::MainGame() : m_gameState(GameState::TUTORIAL), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f)
 {
     TTF_Init();
     // Initalizing font
@@ -13,37 +13,6 @@ MainGame::MainGame() : m_gameState(GameState::PLAY), m_newLines(0), m_speed(2.0f
     {
         std::cout << "Could not load font" << std::endl;
     }
-
-    // Opening log file
-    std::ifstream file;
-    std::string input;
-    file.open("log.txt");
-    if (file.fail())
-    {
-        perror("Could not open log.txt!");
-    }
-
-    // Getting how many times we ran game
-    file >> input;
-    int runs;
-    runs = atoi(input.c_str());
-
-    // If we played more less then 3 times we play tutorial
-    if (runs < 100)
-    {
-        // Play tutorial
-        std::cout << runs << std::endl;
-    }
-    // Increasing runs and closing input file
-    runs++;
-    file.clear();
-    file.close();
-
-    // Opening output file and saving new value of runs
-    std::ofstream file2;
-    file2.open("log.txt");
-    file2 << runs;
-    file2.close();
 }
 
 MainGame::~MainGame()
@@ -84,6 +53,8 @@ void MainGame::InitSystems()
     m_horizontalBorder = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
     m_verticalBorder = m_sprite.LoadTexture("Textures/border_vertical.png", m_renderer);
 
+    InitTutorial();
+
     // Loading first blocks on map
     InitLevel();
 
@@ -96,7 +67,7 @@ void MainGame::InitSystems()
 
 void MainGame::GameLoop()
 {
-    while (m_gameState != GameState::EXIT)
+    while (m_gameState == GameState::PLAY)
     {
         m_fps.Start();
 
@@ -109,24 +80,24 @@ void MainGame::GameLoop()
         UpdateBlocks();
 
         // Rendering level and blocks
-        Draw();
+        Draw(m_levelData);
 
         float fps = m_fps.End();
         //std::cout << fps << std::endl;
     }
 }
 
-void MainGame::Draw()
+void MainGame::Draw(std::vector <std::string>& data)
 {
     SDL_RenderClear(m_renderer);
 
     // Draw level
-    for (int y = 0; y < m_levelData.size(); y++)
+    for (int y = 0; y < data.size(); y++)
     {
-        for (int x = 0; x < m_levelData[y].size(); x++)
+        for (int x = 0; x < data[y].size(); x++)
         {
             SDL_Rect destRect = { x * TILE_WIDTH, y * TILE_WIDTH, TILE_WIDTH, TILE_WIDTH };
-            char tile = m_levelData[y][x];
+            char tile = data[y][x];
             switch (tile)
             {
             case '#':
@@ -160,7 +131,7 @@ void MainGame::Draw()
     // Draw frames around blocks
     for (int i = 0; i < m_blocks.size(); i++)
     {
-        m_blocks[i]->DrawFrame(m_renderer, m_horizontalBorder, m_levelData);
+        m_blocks[i]->DrawFrame(m_renderer, m_horizontalBorder, data);
     }
 
     // Render player score
@@ -279,6 +250,74 @@ void MainGame::InitLevel()
     }
 }
 
+void MainGame::InitTutorial()
+{
+    // Opening log file
+    std::ifstream file;
+    std::string input;
+    file.open("log.txt");
+    if (file.fail())
+    {
+        perror("Could not open log.txt!");
+    }
+
+    // Getting how many times we ran game
+    file >> input;
+    int runs;
+    runs = atoi(input.c_str());
+
+    // If we played more less then 3 times we play tutorial
+    if (runs > 9999999)
+    {
+        // Initalizing tutorial data
+        m_level.InitTutorial("Levels/tutorial1.txt", m_tutorialData, m_blocks, m_blockTypes);
+        PlayTutorial();
+        std::cout << runs << std::endl;
+    }
+    else
+    {
+        m_gameState = GameState::PLAY;
+    }
+    // Increasing runs and closing input file
+    runs++;
+    file.clear();
+    file.close();
+
+    // Opening output file and saving new value of runs
+    std::ofstream file2;
+    file2.open("log.txt");
+    file2 << runs;
+    file2.close();
+}
+
+void MainGame::PlayTutorial()
+{
+    while (m_gameState == GameState::TUTORIAL)
+    {
+        m_fps.Start();
+
+        ProcessInput();
+
+        // Processing remove blocks, roll new blocks and check for lose
+        UpdateTutorial();
+
+        // Rendering level and blocks
+        Draw(m_tutorialData);
+
+        float fps = m_fps.End();
+        //std::cout << fps << std::endl;
+    }
+}
+
+void MainGame::UpdateTutorial()
+{
+    // If player click block process remove
+    if (m_inputManager.IsButtonPressed())
+    {
+        RemoveBlock();
+    }
+}
+
 bool MainGame::InitBlocks(glm::vec2 position)
 {
     // Initalizing only with Z shape (range 3,4)
@@ -306,19 +345,16 @@ void MainGame::RemoveBlock()
         int index = FindBlock(mousePosition, m_blocks);
         if (index != -1)
         {
-            for (auto i = m_stackQueue.begin(); i != m_stackQueue.end(); i++)
+            if (m_stackQueue.front().GetType() == m_blocks[index]->GetShape().GetType())
             {
-                if (i->GetType() == m_blocks[index]->GetShape().GetType())
-                {
-                    ProcessRemove(index, i);
-                    return;
-                }
+                ProcessRemove(index);
+                return;
             }
         }
     }
 }
 
-void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
+void MainGame::ProcessRemove(int index)
 {
     // Check if we can remove block
     if (m_blocks[index]->CanRemove(m_levelData))
@@ -327,7 +363,7 @@ void MainGame::ProcessRemove(int index, std::list<Shape>::iterator& it)
         m_score += 10;
 
         // Processing queue
-        RemoveQueue(it);
+        RemoveQueue();
         UpdateQueue();
         DrawQueue();
 
@@ -500,7 +536,7 @@ bool MainGame::DrawQueue()
     return true;
 }
 
-void MainGame::RemoveQueue(std::list<Shape>::iterator& it)
+void MainGame::RemoveQueue()
 {
     int counter = 0;
     for (auto it = m_stackQueue.begin(); it != m_stackQueue.end(); it++)
@@ -515,5 +551,5 @@ void MainGame::RemoveQueue(std::list<Shape>::iterator& it)
         }
         counter++;
     }
-    m_stackQueue.erase(it);
+    m_stackQueue.pop_front();
 }

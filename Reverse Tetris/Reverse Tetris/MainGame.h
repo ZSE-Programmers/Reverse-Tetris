@@ -12,7 +12,7 @@
 #include "Shape.h"
 #include "FPSLimiter.h"
 
-enum class GameState{PLAY, EXIT};
+enum class GameState{PLAY, EXIT, TUTORIAL};
 
 class MainGame
 {
@@ -26,15 +26,19 @@ private:
     // Functions
     void InitSystems();
     void GameLoop();
-    void Draw();
+    void Draw(std::vector <std::string>& data);
     void Update();
     void UpdateBlocks();
     void ProcessInput();
     void InitLevel();
 
+    void InitTutorial();
+    void PlayTutorial();
+    void UpdateTutorial();
+
     bool InitBlocks(glm::vec2 position);
     void RemoveBlock();
-    void ProcessRemove(int index, std::list<Shape>::iterator& it);
+    void ProcessRemove(int index);
 
     int FindBlock(glm::ivec2 position, std::vector <Block*>& blocks);
 
@@ -50,7 +54,7 @@ private:
     void InitQueue();
     bool UpdateQueue();
     bool DrawQueue();
-    void RemoveQueue(std::list<Shape>::iterator& it);
+    void RemoveQueue();
 
 
 
@@ -96,10 +100,14 @@ private:
     // Hold all blocks
     std::vector <std::string> m_levelData;
     std::vector <Block*> m_blocks;
+    //std::vector <Block*> m_tutBlocks;
 
     // Hold all new blocks
     std::vector <std::string> m_newBlocksData;
     std::vector <Block*> m_newBlocks;
+
+    // Tutorial data
+    std::vector <std::string> m_tutorialData;
 
     // All shapes that exsist on map for making valid queue
     std::list <Shape> m_blockTypes;

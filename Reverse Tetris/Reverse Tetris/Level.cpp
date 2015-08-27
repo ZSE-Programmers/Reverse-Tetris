@@ -161,5 +161,46 @@ void Level::InitNewBlocks(std::vector <Block*>& blocks)
     }
 }
 
+void Level::InitTutorial(std::string path, std::vector<std::string> tutorialData, std::vector<Block*>& blocks, std::list<Shape>& blockTypes)
+{
+    std::ifstream file;
+    std::string input;
+    file.open(path);
+    if (file.fail())
+    {
+        perror(path.c_str());
+    }
+    while (std::getline(file, input))
+    {
+        tutorialData.push_back(input);
+    }
+
+    int counter = 0;
+    for (int y = tutorialData.size() - 1; y >= 0; y--)
+    {
+        for (int x = tutorialData[y].size() - 1; x >= 0; x--)
+        {
+            char tile = tutorialData[y][x];
+            if (tile == '.')
+            {
+                glm::vec2 position = { x, y };
+                Block* tmp_block = nullptr;
+                tmp_block = FitBlock(position, tutorialData, RZShape.GetShape());
+                if (tmp_block != nullptr)
+                {
+                    counter++;
+                    blockTypes.push_back(RZShape);
+                    tmp_block->AddShape(RZShape);
+                    blocks.push_back(tmp_block);
+                    if (counter == 2)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
