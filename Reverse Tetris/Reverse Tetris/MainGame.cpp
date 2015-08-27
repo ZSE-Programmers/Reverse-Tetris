@@ -52,6 +52,7 @@ void MainGame::InitSystems()
     m_graySquare = m_sprite.LoadTexture("Textures/black.png", m_renderer);
     m_horizontalBorder = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
     m_verticalBorder = m_sprite.LoadTexture("Textures/border_vertical.png", m_renderer);
+    m_mouseTexture = m_sprite.LoadTexture("Textures/finger.png", m_renderer);
 
     InitTutorial();
 
@@ -67,8 +68,11 @@ void MainGame::InitSystems()
 
 void MainGame::GameLoop()
 {
+    DrawQueue(m_levelData);
     while (m_gameState == GameState::PLAY)
     {
+        SDL_RenderClear(m_renderer);
+
         m_fps.Start();
 
         ProcessInput();
@@ -82,15 +86,18 @@ void MainGame::GameLoop()
         // Rendering level and blocks
         Draw(m_levelData);
 
+        // Render player score
+        m_window.RenderScore(m_score, m_font, m_renderer, m_textTexture, m_tutorialTime);
+
         float fps = m_fps.End();
         //std::cout << fps << std::endl;
+
+        SDL_RenderPresent(m_renderer);
     }
 }
 
 void MainGame::Draw(std::vector <std::string>& data)
 {
-    SDL_RenderClear(m_renderer);
-
     // Draw level
     for (int y = 0; y < data.size(); y++)
     {
@@ -124,6 +131,11 @@ void MainGame::Draw(std::vector <std::string>& data)
             case '7':
                 SDL_RenderCopy(m_renderer, m_graySquare, NULL, &destRect);
                 break;
+            case 'm':
+                destRect.w = 100;
+                destRect.h = 100;
+                SDL_RenderCopy(m_renderer, m_mouseTexture, NULL, &destRect);
+                break;
             }
         }
     }
@@ -133,11 +145,6 @@ void MainGame::Draw(std::vector <std::string>& data)
     {
         m_blocks[i]->DrawFrame(m_renderer, m_horizontalBorder, data);
     }
-
-    // Render player score
-    m_window.RenderScore(m_score, m_font, m_renderer, m_textTexture);
-    
-    SDL_RenderPresent(m_renderer);
 }
 
 void MainGame::Update()
@@ -172,7 +179,7 @@ void MainGame::Update()
 void MainGame::UpdateBlocks()
 {
     // Moving all blocks one tile up
-    if (SDL_GetTicks() / 1000.0f > m_speed)
+    if ((SDL_GetTicks() / 1000.0f)  - m_tutorialTime > m_speed)
     {
         m_speed += (2.0f * m_multiplier);
 
@@ -272,8 +279,30 @@ void MainGame::InitTutorial()
         // Initalizing tutorial data
         m_level.InitTutorial("Levels/tutorial1.txt", m_blocks, m_blockTypes);
         InitQueue();
+
+        // Initalizing tap here texture
+        SDL_Color textColor = { 255, 255, 255, 255 };
+        SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, "Tap here", textColor);
+        if (textSurface == NULL)
+        {
+            std::cout << "Unable to create text surface!" << std::endl;
+        }
+        else
+        {
+            m_tapHereTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+            if (m_tapHereTexture == NULL)
+            {
+                std::cout << "Unable to create text texture!\n";
+            }
+
+            SDL_FreeSurface(textSurface);
+        }
+        SDL_Rect destRect = { 317, 376, 100, 50 };
+
         PlayTutorial();
         std::cout << runs << std::endl;
+
+        m_score = 0;
     }
     else
     {
@@ -295,35 +324,70 @@ void MainGame::PlayTutorial()
 {
     m_tutorialData = m_level.GetTutorialData();
     DrawQueue(m_tutorialData);
+    SDL_Rect destRect = { 340, 345, 100, 50 };
+
     while (m_gameState == GameState::TUTORIAL)
     {
+        SDL_RenderClear(m_renderer);
+
         m_fps.Start();
 
         ProcessInput();
 
         // Processing remove blocks, roll new blocks and check for lose
-        UpdateTutorial();
+        if (UpdateTutorial(destRect))
+        {
+            //for (int y = 0; y < m_tutorialData.size(); y++)
+            //{
+            //    for (int x = 0; x < m_tutorialData[y].size(); x++)
+            //    {
+            //        if (m_tutorialData[y][x] == 'm')
+            //        {
+            //            m_tutorialData[y][x] = '.';
+            //            m_tutorialData[y][x - 2] = 'm';
+            //            break;
+            //        }
+            //    }
+            //}
+        }
+
+        SDL_RenderCopy(m_renderer, m_tapHereTexture, NULL, &destRect);
 
         // Rendering level and blocks
         Draw(m_tutorialData);
 
         float fps = m_fps.End();
         //std::cout << fps << std::endl;
+
+        m_tutorialTime = SDL_GetTicks() / 1000.0f;
+        std::cout << m_tutorialTime << std::endl;
+
+        SDL_RenderPresent(m_renderer);
     }
 }
 
-void MainGame::UpdateTutorial()
+bool MainGame::UpdateTutorial(SDL_Rect& destRect)
 {
     // If player click block process remove
     if (m_inputManager.IsButtonPressed())
     {
         RemoveBlock(m_tutorialData);
+        return true;
     }
+
+    if (m_blocks.empty())
+    {
+        m_blocks.clear();
+        m_blockTypes.clear();
+        m_stackQueue.clear();
+        m_gameState = GameState::PLAY;
+        return false;
+    }
+    return false;
 }
 
 bool MainGame::InitBlocks(glm::vec2 position)
 {
-    // Initalizing only with Z shape (range 3,4)
     if (m_levelData[position.y][position.x] == '.')
     {
         if (m_level.InsertBlock(position, m_levelData, m_blocks, true, m_blockTypes))
@@ -342,7 +406,7 @@ void MainGame::RemoveBlock(std::vector <std::string>& data)
 
     // Check if this is block or just a part of map
     if (data[mousePosition.y][mousePosition.x] != '.' &&
-    mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 16)
+    mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 17)
     {
         // Return index to block we have to remove
         int index = FindBlock(mousePosition, m_blocks);

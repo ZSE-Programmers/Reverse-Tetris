@@ -28,7 +28,7 @@ void Window::Create(int width, int height)
         return;
     }
     // Set background color
-    SDL_SetRenderDrawColor(m_renderer, 50, 0, 0, 255);
+    SDL_SetRenderDrawColor(m_renderer, 60, 30, 30, 255);
 
     int imgFlags = IMG_INIT_PNG;
     // Error checking
@@ -39,7 +39,7 @@ void Window::Create(int width, int height)
     }
 }
 
-void Window::RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_Texture* textTexture)
+void Window::RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_Texture* textTexture, float& time)
 {
     std::string str = std::to_string(score);
     SDL_Color textColor = { 255, 255, 255, 255 };
@@ -66,7 +66,9 @@ void Window::RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_
 
 
     // Updating player time 
-    str = std::to_string(SDL_GetTicks() / 1000.0f);
+    float tmp_time = (SDL_GetTicks() / 1000.0f) - time;
+    std::cout << tmp_time << std::endl;
+    str = std::to_string(tmp_time);
 
 
     textSurface = TTF_RenderText_Solid(font, str.c_str(), textColor);

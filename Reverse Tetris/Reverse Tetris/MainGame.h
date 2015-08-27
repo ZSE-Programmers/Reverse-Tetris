@@ -34,7 +34,7 @@ private:
 
     void InitTutorial();
     void PlayTutorial();
-    void UpdateTutorial();
+    bool UpdateTutorial(SDL_Rect& destRect);
 
     bool InitBlocks(glm::vec2 position);
     void RemoveBlock(std::vector <std::string>& data);
@@ -81,9 +81,11 @@ private:
     SDL_Texture* m_graySquare;
     SDL_Texture* m_horizontalBorder;
     SDL_Texture* m_verticalBorder;
+    SDL_Texture* m_mouseTexture;
 
     // Font textures
     SDL_Texture* m_textTexture;
+    SDL_Texture* m_tapHereTexture;
     TTF_Font* m_font;
 
     // Shapes
@@ -135,5 +137,7 @@ private:
 
     // Pplayer score
     int m_score;
-    };
+
+    float m_tutorialTime;
+};
 

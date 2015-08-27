@@ -10,7 +10,7 @@ public:
     ~Window();
 
     void Create(int width, int height);
-    void RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_Texture* textTexture);
+    void RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_Texture* textTexture, float& time);
     SDL_Renderer*& GetRenderer() { return m_renderer; }
 private:
     SDL_Window* m_window;
