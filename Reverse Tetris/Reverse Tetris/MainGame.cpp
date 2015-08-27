@@ -145,7 +145,7 @@ void MainGame::Update()
     // If player click block process remove
     if (m_inputManager.IsButtonPressed())
     {
-        RemoveBlock();
+        RemoveBlock(m_levelData);
     }
 
     // Check if player lost
@@ -267,10 +267,11 @@ void MainGame::InitTutorial()
     runs = atoi(input.c_str());
 
     // If we played more less then 3 times we play tutorial
-    if (runs > 9999999)
+    if (runs < 9999999)
     {
         // Initalizing tutorial data
-        m_level.InitTutorial("Levels/tutorial1.txt", m_tutorialData, m_blocks, m_blockTypes);
+        m_level.InitTutorial("Levels/tutorial1.txt", m_blocks, m_blockTypes);
+        InitQueue();
         PlayTutorial();
         std::cout << runs << std::endl;
     }
@@ -292,6 +293,8 @@ void MainGame::InitTutorial()
 
 void MainGame::PlayTutorial()
 {
+    m_tutorialData = m_level.GetTutorialData();
+    DrawQueue(m_tutorialData);
     while (m_gameState == GameState::TUTORIAL)
     {
         m_fps.Start();
@@ -314,7 +317,7 @@ void MainGame::UpdateTutorial()
     // If player click block process remove
     if (m_inputManager.IsButtonPressed())
     {
-        RemoveBlock();
+        RemoveBlock(m_tutorialData);
     }
 }
 
@@ -331,14 +334,14 @@ bool MainGame::InitBlocks(glm::vec2 position)
     return false;
 }
 
-void MainGame::RemoveBlock()
+void MainGame::RemoveBlock(std::vector <std::string>& data)
 {
     glm::vec2 mousePosition = m_inputManager.GetMousePosition();
     // Converting mouse screen coords to levelData coords
     mousePosition = glm::vec2(floor(mousePosition.x / TILE_WIDTH), floor(mousePosition.y / TILE_WIDTH));
 
     // Check if this is block or just a part of map
-    if (m_levelData[mousePosition.y][mousePosition.x] != '.' &&
+    if (data[mousePosition.y][mousePosition.x] != '.' &&
     mousePosition.x > 0 && mousePosition.x < 14 && mousePosition.y > 0 && mousePosition.y < 16)
     {
         // Return index to block we have to remove
@@ -347,14 +350,14 @@ void MainGame::RemoveBlock()
         {
             if (m_stackQueue.front().GetType() == m_blocks[index]->GetShape().GetType())
             {
-                ProcessRemove(index);
+                ProcessRemove(index, data);
                 return;
             }
         }
     }
 }
 
-void MainGame::ProcessRemove(int index)
+void MainGame::ProcessRemove(int index, std::vector <std::string>& data)
 {
     // Check if we can remove block
     if (m_blocks[index]->CanRemove(m_levelData))
@@ -363,9 +366,9 @@ void MainGame::ProcessRemove(int index)
         m_score += 10;
 
         // Processing queue
-        RemoveQueue();
+        RemoveQueue(data);
         UpdateQueue();
-        DrawQueue();
+        DrawQueue(data);
 
         // Position of squares that we can to replace by '.'
         std::vector <glm::ivec2> squarePosition = m_blocks[index]->GetPosition();
@@ -376,7 +379,7 @@ void MainGame::ProcessRemove(int index)
         // Replacing sqaures by '.'
         for (int i = 0; i < squarePosition.size(); i++)
         {
-            m_levelData[squarePosition[i].y][squarePosition[i].x] = '.';
+            data[squarePosition[i].y][squarePosition[i].x] = '.';
         }
     }
 }
@@ -489,9 +492,6 @@ void MainGame::InitQueue()
             m_blockTypes.pop_front();
         }
     }
-
-    // Drawing queue
-    DrawQueue();
 }
 
 bool MainGame::UpdateQueue()
@@ -508,13 +508,12 @@ bool MainGame::UpdateQueue()
         {
             m_stackQueue.push_back(m_blockTypes.front());
             m_blockTypes.pop_front();
-
             return true;
         }
     }
 }
 
-bool MainGame::DrawQueue()
+bool MainGame::DrawQueue(std::vector <std::string>& data)
 {
     int counter = 0;
     for (auto it = m_stackQueue.begin(); it != m_stackQueue.end(); it++)
@@ -527,7 +526,7 @@ bool MainGame::DrawQueue()
                 char tile = tmp_shape[i][j];
                 if (tile != '.')
                 {
-                    m_levelData[QUEUE_POSITIONS[counter].y + i][QUEUE_POSITIONS[counter].x + j] = tile;
+                    data[QUEUE_POSITIONS[counter].y + i][QUEUE_POSITIONS[counter].x + j] = tile;
                 }
             }
         }
@@ -536,7 +535,7 @@ bool MainGame::DrawQueue()
     return true;
 }
 
-void MainGame::RemoveQueue()
+void MainGame::RemoveQueue(std::vector <std::string>& data)
 {
     int counter = 0;
     for (auto it = m_stackQueue.begin(); it != m_stackQueue.end(); it++)
@@ -546,7 +545,7 @@ void MainGame::RemoveQueue()
         {
             for (int j = 0; j < tmp_shape[i].size(); j++)
             {
-                m_levelData[QUEUE_POSITIONS[counter].y + i][QUEUE_POSITIONS[counter].x + j] = '.';
+                data[QUEUE_POSITIONS[counter].y + i][QUEUE_POSITIONS[counter].x + j] = '.';
             }
         }
         counter++;

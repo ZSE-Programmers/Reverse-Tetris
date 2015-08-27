@@ -37,8 +37,8 @@ private:
     void UpdateTutorial();
 
     bool InitBlocks(glm::vec2 position);
-    void RemoveBlock();
-    void ProcessRemove(int index);
+    void RemoveBlock(std::vector <std::string>& data);
+    void ProcessRemove(int index, std::vector <std::string>& data);
 
     int FindBlock(glm::ivec2 position, std::vector <Block*>& blocks);
 
@@ -53,8 +53,8 @@ private:
     // Queue functions
     void InitQueue();
     bool UpdateQueue();
-    bool DrawQueue();
-    void RemoveQueue();
+    bool DrawQueue(std::vector <std::string>& data);
+    void RemoveQueue(std::vector <std::string>& data);
 
 
 
