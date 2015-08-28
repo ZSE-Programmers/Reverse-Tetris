@@ -297,10 +297,38 @@ void MainGame::InitTutorial()
 
             SDL_FreeSurface(textSurface);
         }
-        SDL_Rect destRect = { 317, 376, 100, 50 };
+        SDL_Rect destRect = { 340, 345, 100, 50 };
 
-        PlayTutorial();
+        // First part of tutorial
+        PlayTutorial(destRect, 0);
         std::cout << runs << std::endl;
+
+        // Initalizing texture for second part
+        textColor = { 255, 255, 255, 255 };
+        textSurface = TTF_RenderText_Solid(m_font, "You can't tap this cuz other lay on him", textColor);
+        if (textSurface == NULL)
+        {
+            std::cout << "Unable to create text surface!" << std::endl;
+        }
+        else
+        {
+            m_tapHereTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+            if (m_tapHereTexture == NULL)
+            {
+                std::cout << "Unable to create text texture!\n";
+            }
+
+            SDL_FreeSurface(textSurface);
+        }
+        destRect = { 40, 335, 400, 50 };
+
+        // Second part of tutorial
+        m_gameState = GameState::TUTORIAL;
+        m_tutorialData.clear();
+        m_level.InitTutorial("Levels/tutorial2.txt", m_blocks, m_blockTypes, 1);
+        m_tutorialData = m_level.GetTutorialData();
+        InitQueue();
+        PlayTutorial(destRect, 1);
 
         m_score = 0;
     }
@@ -320,11 +348,10 @@ void MainGame::InitTutorial()
     file2.close();
 }
 
-void MainGame::PlayTutorial()
+void MainGame::PlayTutorial(SDL_Rect& destRect, int part)
 {
     m_tutorialData = m_level.GetTutorialData();
     DrawQueue(m_tutorialData);
-    SDL_Rect destRect = { 340, 345, 100, 50 };
 
     while (m_gameState == GameState::TUTORIAL)
     {
@@ -339,18 +366,21 @@ void MainGame::PlayTutorial()
         {
         }
         
-        if (m_tutorialUpdate != false)
+        if (part == 0)
         {
-            for (int y = 0; y < m_tutorialData.size(); y++)
+            if (m_tutorialUpdate != false)
             {
-                for (int x = 0; x < m_tutorialData[y].size(); x++)
+                for (int y = 0; y < m_tutorialData.size(); y++)
                 {
-                    if (m_tutorialData[y][x] == 'm')
+                    for (int x = 0; x < m_tutorialData[y].size(); x++)
                     {
-                        m_tutorialData[y][x] = '.';
-                        m_tutorialData[y][x - 2] = 'm';
-                        destRect.x -= 64;
-                        m_tutorialUpdate = false;
+                        if (m_tutorialData[y][x] == 'm')
+                        {
+                            m_tutorialData[y][x] = '.';
+                            m_tutorialData[y][x - 2] = 'm';
+                            destRect.x -= 64;
+                            m_tutorialUpdate = false;
+                        }
                     }
                 }
             }

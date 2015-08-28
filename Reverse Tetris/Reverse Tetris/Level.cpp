@@ -170,6 +170,8 @@ void Level::InitTutorial(std::string path, std::vector<Block*>& blocks, std::lis
     {
         perror(path.c_str());
     }
+    m_tutorialData.clear();
+
     if (part == 0)
     {
         while (std::getline(file, input))
@@ -207,22 +209,22 @@ void Level::InitTutorial(std::string path, std::vector<Block*>& blocks, std::lis
     {
         while (std::getline(file, input))
         {
-            m_tutorialData2.push_back(input);
+            m_tutorialData.push_back(input);
         }
 
         int counter = 0;
-        for (int y = m_tutorialData2.size() - 1; y >= 0; y--)
+        for (int y = m_tutorialData.size() - 1; y >= 0; y--)
         {
-            for (int x = m_tutorialData2[y].size() - 1; x >= 0; x--)
+            for (int x = m_tutorialData[y].size() - 1; x >= 0; x--)
             {
-                char tile = m_tutorialData2[y][x];
+                char tile = m_tutorialData[y][x];
                 if (tile == '.')
                 {
                     glm::vec2 position = { x, y };
                     Block* tmp_block = nullptr;
                     if (counter == 1)
                     {
-                        tmp_block = FitBlock(position, m_tutorialData2, TShape.GetShape());
+                        tmp_block = FitBlock(position, m_tutorialData, TShape.GetShape());
                         if (tmp_block != nullptr)
                         {
                             counter++;
@@ -233,7 +235,7 @@ void Level::InitTutorial(std::string path, std::vector<Block*>& blocks, std::lis
                     }
                     else
                     {
-                        tmp_block = FitBlock(position, m_tutorialData2, RZShape.GetShape());
+                        tmp_block = FitBlock(position, m_tutorialData, RZShape.GetShape());
                         if (tmp_block != nullptr)
                         {
                             counter++;

@@ -33,7 +33,7 @@ private:
     void InitLevel();
 
     void InitTutorial();
-    void PlayTutorial();
+    void PlayTutorial(SDL_Rect& destRect, int part);
     bool UpdateTutorial(SDL_Rect& destRect);
 
     bool InitBlocks(glm::vec2 position);
