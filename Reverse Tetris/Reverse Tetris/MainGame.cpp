@@ -331,7 +331,7 @@ void MainGame::InitTutorial()
     runs = atoi(input.c_str());
 
     // If we played more less then 3 times we play tutorial
-    if (runs < 9999999)
+    if (runs < 3)
     {
         // Initalizing tutorial data
         m_level.InitTutorial("Levels/tutorial1.txt", m_blocks, m_blockTypes, 0);
