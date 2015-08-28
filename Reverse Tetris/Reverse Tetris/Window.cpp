@@ -67,7 +67,7 @@ void Window::RenderScore(int score, TTF_Font* font, SDL_Renderer* renderer, SDL_
 
     // Updating player time 
     float tmp_time = (SDL_GetTicks() / 1000.0f) - time;
-    std::cout << tmp_time << std::endl;
+    //std::cout << tmp_time << std::endl;
     str = std::to_string(tmp_time);
 
 

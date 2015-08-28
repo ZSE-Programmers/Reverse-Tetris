@@ -4,7 +4,8 @@
 #include <ctime>
 #include <fstream>
 
-MainGame::MainGame() : m_gameState(GameState::TUTORIAL), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f), m_tutorialUpdate(false)
+MainGame::MainGame() : m_gameState(GameState::TUTORIAL), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f), m_tutorialUpdate(false), 
+m_music(nullptr), m_destroy(nullptr)
 {
     TTF_Init();
     // Initalizing font
@@ -31,6 +32,7 @@ void MainGame::Run()
 {
     InitSystems();
     GameLoop();
+    PrintEndscreen();
 }
 
 void MainGame::InitSystems()
@@ -53,6 +55,24 @@ void MainGame::InitSystems()
     m_horizontalBorder = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
     m_verticalBorder = m_sprite.LoadTexture("Textures/border_vertical.png", m_renderer);
     m_mouseTexture = m_sprite.LoadTexture("Textures/finger.png", m_renderer);
+
+    //Initialize SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    }
+    //Load music
+    m_music = Mix_LoadMUS("Music/BoxCat_Games_-_18_-_Melody.mp3");
+    if (m_music == nullptr)
+    {
+        printf("Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError());
+    }
+    m_destroy = Mix_LoadWAV("Music/collide_wall.wav");
+    m_fast = Mix_LoadWAV("Music/G14F.wav");
+    m_impressive = Mix_LoadWAV("Music/G13F.wav");
+
+
+    Mix_PlayMusic(m_music, -1);
 
     InitTutorial();
 
@@ -257,6 +277,43 @@ void MainGame::InitLevel()
     }
 }
 
+void MainGame::PrintEndscreen()
+{
+    Mix_PauseMusic();
+    SDL_RenderClear(m_renderer);
+
+    // Initalizing tap here texture
+    std::string str = "You  earned  " + std::to_string(m_score) + "  points!";
+    SDL_Color textColor = { 255, 255, 255, 255 };
+    SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, str.c_str(), textColor);
+    if (textSurface == NULL)
+    {
+        std::cout << "Unable to create text surface!" << std::endl;
+    }
+    else
+    {
+        m_tapHereTexture = SDL_CreateTextureFromSurface(m_renderer, textSurface);
+        if (m_tapHereTexture == NULL)
+        {
+            std::cout << "Unable to create text texture!\n";
+        }
+
+        SDL_FreeSurface(textSurface);
+    }
+    SDL_Rect destRect = { 70, 100, 700, 300 };
+    SDL_RenderCopy(m_renderer, m_tapHereTexture, NULL, &destRect);
+    SDL_RenderPresent(m_renderer);
+
+    if (m_score < 100)
+    {
+        Mix_PlayChannel(-1, m_fast, 0);
+    }
+    else
+    {
+        Mix_PlayChannel(-1, m_impressive, 0);
+    }
+}
+
 void MainGame::InitTutorial()
 {
     // Opening log file
@@ -450,7 +507,6 @@ void MainGame::RemoveBlock(std::vector <std::string>& data)
         {
             if (m_stackQueue.front().GetType() == m_blocks[index]->GetShape().GetType())
             {
-                m_tutorialUpdate = true;
                 ProcessRemove(index, data);
                 return;
             }
@@ -461,11 +517,12 @@ void MainGame::RemoveBlock(std::vector <std::string>& data)
 void MainGame::ProcessRemove(int index, std::vector <std::string>& data)
 {
     // Check if we can remove block
-    if (m_blocks[index]->CanRemove(m_levelData))
+    if (m_blocks[index]->CanRemove(data))
     {
         // Adding points to player score
         m_score += 10;
-
+        m_tutorialUpdate = true;
+        Mix_PlayChannel(-1, m_destroy, 0);
         // Processing queue
         RemoveQueue(data);
         UpdateQueue();

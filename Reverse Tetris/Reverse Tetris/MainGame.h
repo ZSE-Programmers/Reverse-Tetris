@@ -2,6 +2,7 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_timer.h>
 #include <SDL/SDL_ttf.h>
+#include <SDL/SDL_mixer.h>
 #include <list>
 
 #include "Window.h"
@@ -31,6 +32,7 @@ private:
     void UpdateBlocks();
     void ProcessInput();
     void InitLevel();
+    void PrintEndscreen();
 
     void InitTutorial();
     void PlayTutorial(SDL_Rect& destRect, int part);
@@ -98,6 +100,11 @@ private:
     Shape RZShape2;
 
     Shape m_emptyShape;
+
+    Mix_Music* m_music;
+    Mix_Chunk* m_destroy;
+    Mix_Chunk* m_fast;
+    Mix_Chunk* m_impressive;
 
     // Hold all blocks
     std::vector <std::string> m_levelData;
