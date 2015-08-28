@@ -4,7 +4,7 @@
 #include <ctime>
 #include <fstream>
 
-MainGame::MainGame() : m_gameState(GameState::TUTORIAL), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f)
+MainGame::MainGame() : m_gameState(GameState::TUTORIAL), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f), m_tutorialUpdate(false)
 {
     TTF_Init();
     // Initalizing font
@@ -277,7 +277,7 @@ void MainGame::InitTutorial()
     if (runs < 9999999)
     {
         // Initalizing tutorial data
-        m_level.InitTutorial("Levels/tutorial1.txt", m_blocks, m_blockTypes);
+        m_level.InitTutorial("Levels/tutorial1.txt", m_blocks, m_blockTypes, 0);
         InitQueue();
 
         // Initalizing tap here texture
@@ -337,19 +337,25 @@ void MainGame::PlayTutorial()
         // Processing remove blocks, roll new blocks and check for lose
         if (UpdateTutorial(destRect))
         {
-            //for (int y = 0; y < m_tutorialData.size(); y++)
-            //{
-            //    for (int x = 0; x < m_tutorialData[y].size(); x++)
-            //    {
-            //        if (m_tutorialData[y][x] == 'm')
-            //        {
-            //            m_tutorialData[y][x] = '.';
-            //            m_tutorialData[y][x - 2] = 'm';
-            //            break;
-            //        }
-            //    }
-            //}
         }
+        
+        if (m_tutorialUpdate != false)
+        {
+            for (int y = 0; y < m_tutorialData.size(); y++)
+            {
+                for (int x = 0; x < m_tutorialData[y].size(); x++)
+                {
+                    if (m_tutorialData[y][x] == 'm')
+                    {
+                        m_tutorialData[y][x] = '.';
+                        m_tutorialData[y][x - 2] = 'm';
+                        destRect.x -= 64;
+                        m_tutorialUpdate = false;
+                    }
+                }
+            }
+        }
+
 
         SDL_RenderCopy(m_renderer, m_tapHereTexture, NULL, &destRect);
 
@@ -360,7 +366,7 @@ void MainGame::PlayTutorial()
         //std::cout << fps << std::endl;
 
         m_tutorialTime = SDL_GetTicks() / 1000.0f;
-        std::cout << m_tutorialTime << std::endl;
+        //std::cout << m_tutorialTime << std::endl;
 
         SDL_RenderPresent(m_renderer);
     }
@@ -414,6 +420,7 @@ void MainGame::RemoveBlock(std::vector <std::string>& data)
         {
             if (m_stackQueue.front().GetType() == m_blocks[index]->GetShape().GetType())
             {
+                m_tutorialUpdate = true;
                 ProcessRemove(index, data);
                 return;
             }

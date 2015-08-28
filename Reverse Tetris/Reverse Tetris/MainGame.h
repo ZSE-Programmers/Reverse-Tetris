@@ -110,6 +110,7 @@ private:
 
     // Tutorial data
     std::vector <std::string> m_tutorialData;
+    std::vector <std::string> m_tutorialData2;
 
     // All shapes that exsist on map for making valid queue
     std::list <Shape> m_blockTypes;
@@ -139,5 +140,7 @@ private:
     int m_score;
 
     float m_tutorialTime;
+
+    bool m_tutorialUpdate;
 };
 

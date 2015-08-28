@@ -19,13 +19,14 @@ public:
 
     void InitNewBlocks(std::vector <Block*>& blocks);
 
-    void InitTutorial(std::string path, std::vector <Block*>& blocks, std::list <Shape>& blockTypes);
+    void InitTutorial(std::string path, std::vector <Block*>& blocks, std::list <Shape>& blockTypes, int part);
 
 
     // Getters for level data
     std::vector <std::string>& GetLevelData() { return m_levelData; }
     std::vector <std::string>& GetNewLinesData() { return m_newBlocksData; }
     std::vector <std::string>& GetTutorialData() { return m_tutorialData; }
+    std::vector <std::string>& GetTutorialData2() { return m_tutorialData2; }
 
     //Setters
 
@@ -36,6 +37,8 @@ private:
     std::vector <std::string> m_newBlocksData;
 
     std::vector <std::string> m_tutorialData;
+
+    std::vector <std::string> m_tutorialData2;
 
     std::vector <Shape*> m_shapes;
 
