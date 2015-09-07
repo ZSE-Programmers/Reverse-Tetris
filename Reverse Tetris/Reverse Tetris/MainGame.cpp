@@ -5,10 +5,10 @@
 #include <fstream>
 
 MainGame::MainGame() : m_gameState(GameState::TUTORIAL), m_newLines(0), m_speed(2.0f), m_font(nullptr), m_score(0), m_multiplier(0.95f), m_tutorialUpdate(false), 
-m_music(nullptr), m_destroy(nullptr)
+m_music(nullptr), m_destroy(nullptr), m_renderer(nullptr)
 {
-    TTF_Init();
     // Initalizing font
+    TTF_Init();
     m_font = TTF_OpenFont("Fonts/BEBAS.ttf", 32);
     if (m_font == nullptr)
     {
@@ -52,9 +52,8 @@ void MainGame::InitSystems()
     m_yellowSquare = m_sprite.LoadTexture("Textures/element_yellow_square.png", m_renderer);
     m_pinkSquare = m_sprite.LoadTexture("Textures/white-gray.png", m_renderer);
     m_graySquare = m_sprite.LoadTexture("Textures/black.png", m_renderer);
-    m_horizontalBorder = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
-    m_verticalBorder = m_sprite.LoadTexture("Textures/border_vertical.png", m_renderer);
-    m_mouseTexture = m_sprite.LoadTexture("Textures/finger.png", m_renderer);
+    m_border = m_sprite.LoadTexture("Textures/border_horizontal.png", m_renderer);
+    m_fingerTexture = m_sprite.LoadTexture("Textures/finger.png", m_renderer);
 
     //Initialize SDL_mixer
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
@@ -71,9 +70,10 @@ void MainGame::InitSystems()
     m_fast = Mix_LoadWAV("Music/G14F.wav");
     m_impressive = Mix_LoadWAV("Music/G13F.wav");
 
-
+    // Start background music
     Mix_PlayMusic(m_music, -1);
 
+    // Initalize and play tutorial 
     InitTutorial();
 
     // Loading first blocks on map
@@ -151,10 +151,10 @@ void MainGame::Draw(std::vector <std::string>& data)
             case '7':
                 SDL_RenderCopy(m_renderer, m_graySquare, NULL, &destRect);
                 break;
-            case 'm':
+            case 'm': // Finger tile
                 destRect.w = 100;
                 destRect.h = 100;
-                SDL_RenderCopy(m_renderer, m_mouseTexture, NULL, &destRect);
+                SDL_RenderCopy(m_renderer, m_fingerTexture, NULL, &destRect);
                 break;
             }
         }
@@ -163,7 +163,7 @@ void MainGame::Draw(std::vector <std::string>& data)
     // Draw frames around blocks
     for (int i = 0; i < m_blocks.size(); i++)
     {
-        m_blocks[i]->DrawFrame(m_renderer, m_horizontalBorder, data);
+        m_blocks[i]->DrawFrame(m_renderer, m_border, data);
     }
 }
 
@@ -187,7 +187,7 @@ void MainGame::Update()
         }
     }
 
-    // If new blocks txt file is at the end we roll new blocks
+    // If new blocks txt file is empty we roll new blocks
     if (m_newLines == m_newBlocksData.size() - 4)
     {
         m_newBlocksData.clear();
@@ -201,17 +201,20 @@ void MainGame::UpdateBlocks()
     // Moving all blocks one tile up
     if ((SDL_GetTicks() / 1000.0f)  - m_tutorialTime > m_speed)
     {
+        // Blocks moves faster and faster
         m_speed += (2.0f * m_multiplier);
 
+        // Moving blocks one tile up
         for (int y = 0; y < m_levelData.size(); y++)
         {
             for (int x = 0; x < m_levelData[y].size(); x++)
             {
-                char tile = m_levelData[y][x];
-                if (tile != '#' && tile != 'x' && tile != '-' && y != 1 && y != 16 && x < 14)
+                char tmp_tile = m_levelData[y][x];
+                if (tmp_tile != '#' && tmp_tile != 'x' && tmp_tile != '-' && y != 1 && y != 16 && x < 14)
                 {
                     m_levelData[y][x] = m_levelData[y + 1][x];
                 }
+                // Last lane
                 else if (y == 16)
                 {
                     m_levelData[y] = m_newBlocksData[m_newLines];
@@ -282,7 +285,7 @@ void MainGame::PrintEndscreen()
     Mix_PauseMusic();
     SDL_RenderClear(m_renderer);
 
-    // Initalizing tap here texture
+    // Initalizing score texture
     std::string str = "You  earned  " + std::to_string(m_score) + "  points!";
     SDL_Color textColor = { 255, 255, 255, 255 };
     SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, str.c_str(), textColor);
@@ -636,7 +639,6 @@ void MainGame::InitQueue()
 {
     if (!m_blockTypes.empty())
     {
-        //auto it = m_blockTypes.begin();
         // Pushing new blocks to the queue
         for (int i = 0; i < QUEUE_SIZE; i++)
         {

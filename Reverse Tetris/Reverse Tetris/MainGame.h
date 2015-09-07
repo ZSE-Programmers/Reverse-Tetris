@@ -81,9 +81,8 @@ private:
     SDL_Texture* m_yellowSquare;
     SDL_Texture* m_pinkSquare;
     SDL_Texture* m_graySquare;
-    SDL_Texture* m_horizontalBorder;
-    SDL_Texture* m_verticalBorder;
-    SDL_Texture* m_mouseTexture;
+    SDL_Texture* m_border;
+    SDL_Texture* m_fingerTexture;
 
     // Font textures
     SDL_Texture* m_textTexture;
@@ -146,7 +145,9 @@ private:
     // Pplayer score
     int m_score;
 
+    // Hold time while tutorial is on
     float m_tutorialTime;
+
 
     bool m_tutorialUpdate;
 };
