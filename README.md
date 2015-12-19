@@ -1,5 +1,3 @@
-# Reverse-Tetris
-Reverse Tetris game in SDL2.0
+# Revertris
+Revertris game written in SDL2.0 and C++.
 
-TODO:
-- ;
